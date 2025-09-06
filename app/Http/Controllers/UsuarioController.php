@@ -35,7 +35,6 @@ class UsuarioController extends Controller
             $busqueda = $request->get('busquedaUsuario');
             $query->where(function($q) use ($busqueda) {
                 $q->where('name', 'LIKE', '%' . $busqueda . '%')
-                  ->orWhere('cedula', 'LIKE', '%' . $busqueda . '%')
                   ->orWhere('email', 'LIKE', '%' . $busqueda . '%');
             });
         }
@@ -65,10 +64,15 @@ class UsuarioController extends Controller
             return response()->json([]);
         }
         
-        $especialidades = Especialidade::whereIn('id_institucion', $institucionesIds)
-                                     ->where('condicion', true)
-                                     ->orderBy('nombre')
-                                     ->get(['id', 'nombre', 'id_institucion']);
+        // Buscar especialidades que pertenezcan a las instituciones seleccionadas
+        // usando la relación many-to-many a través de la tabla pivot
+        $especialidades = Especialidade::whereHas('instituciones', function($query) use ($institucionesIds) {
+            $query->whereIn('institucione.id', $institucionesIds)
+                  ->where('especialidad_institucion.condicion', true);
+        })
+        ->where('condicion', true)
+        ->orderBy('nombre')
+        ->get(['id', 'nombre']);
         
         return response()->json($especialidades);
     }
@@ -122,17 +126,14 @@ class UsuarioController extends Controller
             DB::commit();
 
             if ($status == Password::RESET_LINK_SENT) {
-                return redirect()->route('usuario.index')
-                    ->with('success', 'Usuario creado exitosamente. Se ha enviado un correo para establecer la contraseña.');
+                return redirect()->route('usuario.index')->with('success', 'Usuario creado exitosamente. Se ha enviado un correo para configurar la contraseña.');
             } else {
-                return redirect()->route('usuario.index')
-                    ->with('warning', 'Usuario creado, pero no se pudo enviar el correo de configuración de contraseña. Error: ' . __($status));
+                return redirect()->route('usuario.index')->with('warning', 'Usuario creado, pero no se pudo enviar el correo de configuración.');
             }
             
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('usuario.index')
-                ->with('error', 'Error al crear el usuario: ' . $e->getMessage());
+            return redirect()->route('usuario.index')->with('error', 'Error al crear el usuario: ' . $e->getMessage());
         }
     }
 
@@ -157,16 +158,22 @@ class UsuarioController extends Controller
 
         try {
             DB::beginTransaction();
+            
+            $requestData = [
+                'name' => $request->name,
+                'cedula' => $request->cedula,
+                'email' => $request->email,
+            ];
+
             //Comprueba la contraseña y aplica el hash
             if (empty($request->password)) {
-                $requestData = $request->except('password');
+                // No actualizar contraseña
+            } else {
+                $requestData['password'] = Hash::make($request->password);
             }
-            else{
-                $fieldHash = Hash::make($request->password);
-                $request->merge(['password' => $fieldHash]);
-                $requestData = $request->all();
-            }
+            
             $usuario->update($requestData);
+            
             //actualiza el rol
             $usuario->syncRoles($request->role);
 
@@ -174,7 +181,7 @@ class UsuarioController extends Controller
             if ($request->role === 'profesor' && $request->has('instituciones')) {
                 $usuario->instituciones()->sync($request->instituciones);
             } else {
-                // Si no es profesor, eliminar todas las instituciones
+                // Si no es profesor, quitar todas las instituciones
                 $usuario->instituciones()->detach();
             }
 
@@ -182,19 +189,17 @@ class UsuarioController extends Controller
             if ($request->role === 'profesor' && $request->has('especialidades')) {
                 $usuario->especialidades()->sync($request->especialidades);
             } else {
-                // Si no es profesor, eliminar todas las especialidades
+                // Si no es profesor, quitar todas las especialidades
                 $usuario->especialidades()->detach();
             }
 
             DB::commit();
+            return redirect()->route('usuario.index')->with('success', 'Usuario actualizado exitosamente.');
         }
         catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('usuario.index')
-                ->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
+            return redirect()->route('usuario.index')->with('error', 'Error al actualizar el usuario: ' . $e->getMessage());
         }
-
-        return redirect()->route('usuario.index')->with('success', 'Usuario actualizado exitosamente.');
     }
 
     /**
@@ -205,24 +210,20 @@ class UsuarioController extends Controller
         try {
             // Verificar que el usuario esté activo
             if (!$usuario->condicion) {
-                return redirect()->route('usuario.index')
-                    ->with('error', 'No se puede enviar el correo a un usuario inactivo.');
+                return redirect()->route('usuario.index')->with('error', 'No se puede enviar configuración a usuarios inactivos.');
             }
 
             // Enviar email de reset password
             $status = Password::sendResetLink(['email' => $usuario->email]);
 
             if ($status == Password::RESET_LINK_SENT) {
-                return redirect()->route('usuario.index')
-                    ->with('success', 'Correo de configuración de contraseña reenviado exitosamente a ' . $usuario->email);
+                return redirect()->route('usuario.index')->with('success', 'Correo de configuración enviado exitosamente.');
             } else {
-                return redirect()->route('usuario.index')
-                    ->with('error', 'No se pudo enviar el correo. Error: ' . __($status));
+                return redirect()->route('usuario.index')->with('error', 'No se pudo enviar el correo de configuración.');
             }
             
         } catch (\Exception $e) {
-            return redirect()->route('usuario.index')
-                ->with('error', 'Error al enviar el correo: ' . $e->getMessage());
+            return redirect()->route('usuario.index')->with('error', 'Error al enviar el correo: ' . $e->getMessage());
         }
     }
 

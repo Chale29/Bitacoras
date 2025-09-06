@@ -28,11 +28,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
-
 Route::resource('bitacora', BitacoraController::class);
-
-
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Rutas de recursos con protección para directores en acciones de escritura
@@ -48,9 +44,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('usuario.resend-password-setup')
         ->middleware('director.readonly');
     
-    // Ruta para obtener especialidades por instituciones
+    // Rutas para obtener especialidades por instituciones (agregar tanto GET como POST)
     Route::post('/usuario/especialidades-por-instituciones', [UsuarioController::class, 'getEspecialidadesByInstituciones'])
         ->name('usuario.especialidades-por-instituciones');
+    Route::get('/usuario/especialidades-por-instituciones', [UsuarioController::class, 'getEspecialidadesByInstituciones'])
+        ->name('usuario.especialidades-por-instituciones.get');
 
     Route::resource('institucion', InstitucionController::class)->except(['store', 'update', 'destroy']);
     Route::resource('institucion', InstitucionController::class)->only(['store', 'update', 'destroy'])->middleware('director.readonly');
@@ -64,13 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('especialidad', EspecialidadController::class)->except(['store', 'update', 'destroy']);
     Route::resource('especialidad', EspecialidadController::class)->only(['store', 'update', 'destroy'])->middleware('director.readonly');
 
-
     Route::resource('recinto', RecintoController::class);
-
 
     Route::resource('horario', HorarioController::class);
     Route::resource('tipoRecinto', TipoRecintoController::class);
-
 
     Route::resource('estadoRecinto', EstadoRecintoController::class);
 
@@ -84,64 +79,61 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/template-administrador', 'Template-administrador')->name('template-administrador');
     Route::view('/template-profesor', 'Template-profesor')->name('template-profesor');
     Route::view('/template-soporte', 'Template-soporte')->name('template-soporte');
-    
-
 });
 
-    // Rutas para gestión de QR temporales
-    Route::middleware(['auth'])->group(function () {
-        // Para profesores
-        Route::middleware('role:profesor')->group(function () {
-            Route::get('/profesor/llaves', [QrController::class, 'indexProfesor'])->name('profesor.llaves.index');
-            Route::post('/qr/generar', [QrController::class, 'generarQr'])->name('qr.generar');
-        });
-        
-        // Ruta temporal para debug (sin middleware de rol)
-        Route::get('/test-profesor-llaves', [QrController::class, 'indexProfesor'])->name('test.profesor.llaves');
-        
-        // NUEVAS RUTAS PARA PROFESOR-LLAVE (estructura separada)
-        Route::middleware('role:profesor')->group(function () {
-            Route::get('/profesor-llave', [App\Http\Controllers\ProfesorLlaveController::class, 'index'])->name('profesor-llave.index');
-            Route::get('/profesor-llave/scanner', [App\Http\Controllers\ProfesorLlaveController::class, 'scanner'])->name('profesor-llave.scanner');
-            Route::post('/profesor-llave/generar-qr', [App\Http\Controllers\ProfesorLlaveController::class, 'generarQr'])->name('profesor-llave.generar-qr');
-            Route::post('/profesor-llave/escanear-qr', [App\Http\Controllers\ProfesorLlaveController::class, 'escanearQr'])->name('profesor-llave.escanear-qr');
-            Route::get('/profesor-llave/qrs-realtime', [App\Http\Controllers\ProfesorLlaveController::class, 'getQRsRealTime'])->name('profesor-llave.qrs-realtime');
-        });
-        
-        // Para administradores - Usar permisos en lugar de roles
-    Route::middleware('can:view_qr_temporales')->group(function () {
-            Route::get('/admin/qr', [QrController::class, 'indexAdmin'])->name('admin.qr.index');
-            
-            // Rutas para datos en tiempo real del administrador
-            Route::get('/admin/llaves/realtime', [LlaveController::class, 'getLlavesRealTime'])->name('admin.llaves.realtime');
-            Route::get('/admin/qr/realtime-data', [LlaveController::class, 'getQRsTemporalesRealTime'])->name('admin.qr.realtime');
-        });
-        
-        // Ruta para escanear QR (disponible para ambos roles)
-        Route::post('/qr/escanear', [QrController::class, 'escanearQr'])->name('qr.escanear');
+// Rutas para gestión de QR temporales
+Route::middleware(['auth'])->group(function () {
+    // Para profesores
+    Route::middleware('role:profesor')->group(function () {
+        Route::get('/profesor/llaves', [QrController::class, 'indexProfesor'])->name('profesor.llaves.index');
+        Route::post('/qr/generar', [QrController::class, 'generarQr'])->name('qr.generar');
     });
-
-        // Rutas específicas por rol - Usar permisos en lugar de roles
-        Route::middleware(['can:view_usuarios'])->group(function () {
-            Route::get('/template-administrador', function () {
-                return view('Template-administrador');
-            })->name('template-administrador');
-        });
-        
-        // Rutas para profesor
-        Route::middleware('role:profesor')->group(function () {
-            Route::get('/template-profesor', function () {
-                return view('Template-profesor');
-            })->name('template-profesor');
-        });
-        
-        // Rutas para soporte
-        Route::middleware('role:soporte')->group(function () {
-            Route::get('/template-soporte', function () {
-                return view('Template-soporte');
-            })->name('template-soporte');
-        });
     
+    // Ruta temporal para debug (sin middleware de rol)
+    Route::get('/test-profesor-llaves', [QrController::class, 'indexProfesor'])->name('test.profesor.llaves');
+    
+    // NUEVAS RUTAS PARA PROFESOR-LLAVE (estructura separada)
+    Route::middleware('role:profesor')->group(function () {
+        Route::get('/profesor-llave', [App\Http\Controllers\ProfesorLlaveController::class, 'index'])->name('profesor-llave.index');
+        Route::get('/profesor-llave/scanner', [App\Http\Controllers\ProfesorLlaveController::class, 'scanner'])->name('profesor-llave.scanner');
+        Route::post('/profesor-llave/generar-qr', [App\Http\Controllers\ProfesorLlaveController::class, 'generarQr'])->name('profesor-llave.generar-qr');
+        Route::post('/profesor-llave/escanear-qr', [App\Http\Controllers\ProfesorLlaveController::class, 'escanearQr'])->name('profesor-llave.escanear-qr');
+        Route::get('/profesor-llave/qrs-realtime', [App\Http\Controllers\ProfesorLlaveController::class, 'getQRsRealTime'])->name('profesor-llave.qrs-realtime');
+    });
+    
+    // Para administradores - Usar permisos en lugar de roles
+    Route::middleware('can:view_qr_temporales')->group(function () {
+        Route::get('/admin/qr', [QrController::class, 'indexAdmin'])->name('admin.qr.index');
+        
+        // Rutas para datos en tiempo real del administrador
+        Route::get('/admin/llaves/realtime', [LlaveController::class, 'getLlavesRealTime'])->name('admin.llaves.realtime');
+        Route::get('/admin/qr/realtime-data', [LlaveController::class, 'getQRsTemporalesRealTime'])->name('admin.qr.realtime');
+    });
+    
+    // Ruta para escanear QR (disponible para ambos roles)
+    Route::post('/qr/escanear', [QrController::class, 'escanearQr'])->name('qr.escanear');
+});
+
+// Rutas específicas por rol - Usar permisos en lugar de roles
+Route::middleware(['can:view_usuarios'])->group(function () {
+    Route::get('/template-administrador', function () {
+        return view('Template-administrador');
+    })->name('template-administrador');
+});
+
+// Rutas para profesor
+Route::middleware('role:profesor')->group(function () {
+    Route::get('/template-profesor', function () {
+        return view('Template-profesor');
+    })->name('template-profesor');
+});
+
+// Rutas para soporte
+Route::middleware('role:soporte')->group(function () {
+    Route::get('/template-soporte', function () {
+        return view('Template-soporte');
+    })->name('template-soporte');
+});
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -180,7 +172,6 @@ Route::get('/clear-cache', function () {
 });
 
 // Nueva ruta para cargar eventos
-
 Route::get('/eventos/load', [EventoController::class, 'loadEventos'])->name('eventos.load');
 Route::get('/eventos/profesor/load', [EventoController::class, 'loadEventosProfesor'])->name('eventos.profesor.load');
 Route::get('/eventos/soporte/load', [EventoController::class, 'loadEventosSoporte'])->name('eventos.soporte.load');
@@ -192,9 +183,6 @@ Route::get('/evento/{id}/details', [EventoController::class, 'getEventoDetails']
 Route::patch('/evento/{id}', [EventoController::class, 'update'])->name('evento.update');
 Route::get('/evento', [EventoController::class, 'index'])->name('evento.index');
 
-
-
-
 // Añadir esta ruta para el index de eventos del profesor
 Route::middleware(['auth', 'role:profesor'])->group(function () {
     Route::get('/evento/profesor', [EventoController::class, 'index_profesor'])->name('evento.index_profesor');
@@ -205,9 +193,5 @@ Route::middleware(['auth', 'role:soporte'])->group(function () {
     Route::get('/evento/soporte', [EventoController::class, 'index_soporte'])->name('evento.index_soporte');
 });
 Route::delete('/evento/{evento}', [EventoController::class, 'destroy'])->name('evento.destroy');
-
-
-
-
 
 require __DIR__.'/auth.php';

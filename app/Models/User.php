@@ -62,7 +62,7 @@ class User extends Authenticatable
      */
     public function instituciones()
     {
-        return $this->belongsToMany(Institucione::class, 'user_institucione', 'user_id', 'institucione_id');
+        return $this->belongsToMany(Institucione::class, 'user_institucione', 'user_id', 'institucion_id');
     }
 
     /**
@@ -70,6 +70,6 @@ class User extends Authenticatable
      */
     public function especialidades()
     {
-        return $this->belongsToMany(Especialidade::class, 'user_especialidade', 'user_id', 'especialidade_id');
+        return $this->belongsToMany(Especialidade::class, 'user_especialidade', 'user_id', 'especialidad_id');
     }
 }
