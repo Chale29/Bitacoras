@@ -64,7 +64,9 @@ class BitacoraController extends Controller
         $todasLasBitacoras = Bitacora::with(['recinto'])->get();
         
         // Inicializar query base para la lista filtrada
-        $query = Bitacora::with(['recinto', 'evento' => function($q) { $q->where('condicion', 1); }]);
+        $query = Bitacora::with(['recinto', 'evento' => function($q) { 
+            $q->where('condicion', 1)->with('usuario'); 
+        }]);
         
         // Aplicar filtro de búsqueda por recinto si existe
         if ($request->has('busquedaBitacora') && $request->busquedaBitacora) {
@@ -111,7 +113,9 @@ class BitacoraController extends Controller
                     ->whereIn('id_recinto', $recintoIds)
                     ->get();
                 
-                $query = Bitacora::with(['recinto', 'evento' => function($q) { $q->where('condicion', 1); }])
+                $query = Bitacora::with(['recinto', 'evento' => function($q) { 
+                    $q->where('condicion', 1)->with('usuario'); 
+                }])
                     ->whereIn('id_recinto', $recintoIds);
                 
                 // Aplicar filtro de búsqueda por recinto si existe

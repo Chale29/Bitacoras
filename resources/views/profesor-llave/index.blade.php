@@ -15,6 +15,62 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .wrapper {
+        padding: 10px;
+    }
+    
+    .main-content {
+        padding: 15px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .d-flex.align-items-center.gap-3 {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem !important;
+    }
+    
+    .badge.bg-info {
+        width: 100%;
+        text-align: center;
+        padding: 0.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-body .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    h2 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    .card-header h6 {
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 1rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+}
 </style>
 
 
@@ -30,11 +86,11 @@
                 @endif
                 <!-- Botón manual para debug -->
                 <button id="btn-actualizar-qrs" class="btn btn-outline-secondary btn-sm" title="Actualizar QRs manualmente">
-                    <i class="bi bi-arrow-clockwise"></i> Debug QRs
+                    <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-md-inline">Debug QRs</span>
                 </button>
                 <!-- Botón para escanear QR -->
                 <a href="{{ route('profesor-llave.scanner') }}" class="btn btn-primary">
-                    <i class="bi bi-camera"></i> Escanear QR
+                    <i class="bi bi-camera"></i> <span class="d-none d-sm-inline">Escanear QR</span>
                 </a>
             </div>
         </div>
@@ -49,33 +105,34 @@
 
 
         @if(!isset($error) && $recintos->count() > 0)
-            <div class="row">
+            <div class="row g-3">
                 @foreach($recintos as $item)
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card shadow-sm border-primary">
+                    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <div class="card shadow-sm border-primary h-100">
                             <div class="card-header bg-primary text-white">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h6 class="mb-0 flex-grow-1">
                                         <i class="bi bi-building"></i> {{ $item->recinto_nombre }}
                                     </h6>
-                                    <span class="badge {{ $item->llave_estado == 0 ? 'bg-success' : 'bg-warning text-dark' }}">
-                                        {{ $item->llave_estado == 0 ? 'Entregada' : 'No Entregada' }}
+                                    <span class="badge {{ $item->llave_estado == 0 ? 'bg-success' : 'bg-warning text-dark' }} ms-2 flex-shrink-0">
+                                        <span class="d-none d-sm-inline">{{ $item->llave_estado == 0 ? 'Entregada' : 'No Entregada' }}</span>
+                                        <span class="d-sm-none">{{ $item->llave_estado == 0 ? '✓' : '✗' }}</span>
                                     </span>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="mb-3">
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
                                     <strong><i class="bi bi-key"></i> Llave:</strong>
-                                    <span class="text-primary">{{ $item->llave_nombre }}</span>
+                                    <span class="text-primary d-block">{{ $item->llave_nombre }}</span>
                                 </div>
                                
-                                <div class="text-center">
-                                    <button class="btn btn-success btn-generar-qr"
+                                <div class="text-center mt-auto">
+                                    <button class="btn btn-success btn-generar-qr w-100"
                                             data-recinto-id="{{ $item->recinto_id }}"
                                             data-llave-id="{{ $item->llave_id }}"
                                             data-recinto-nombre="{{ $item->recinto_nombre }}"
                                             data-llave-nombre="{{ $item->llave_nombre }}">
-                                        <i class="bi bi-qr-code"></i> Generar QR
+                                        <i class="bi bi-qr-code"></i> <span class="d-none d-sm-inline">Generar </span>QR
                                     </button>
                                 </div>
                             </div>
@@ -99,22 +156,22 @@
         @if(!isset($error) && $qrsTemporales->count() > 0)
             <div class="mt-5">
                 <h4><i class="bi bi-clock-history"></i> QRs Temporales Activos</h4>
-                <div class="row" id="qrs-container">
+                <div class="row g-3" id="qrs-container">
                     @foreach($qrsTemporales as $qr)
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card border-success">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ $qr->codigo_qr }}</h6>
-                                    <p class="card-text">
-                                        <strong>Recinto:</strong> {{ $qr->recinto_nombre }}<br>
-                                        <strong>Llave:</strong> {{ $qr->llave_nombre }}<br>
-                                        <strong>Expira:</strong> {{ \Carbon\Carbon::parse($qr->expira_en)->format('d/m/Y H:i') }}
-                                    </p>
-                                    <button class="btn btn-outline-primary btn-sm btn-ver-qr"
+                        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                            <div class="card border-success h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title text-truncate">{{ $qr->codigo_qr }}</h6>
+                                    <div class="card-text flex-grow-1">
+                                        <strong>Recinto:</strong> <span class="d-block">{{ $qr->recinto_nombre }}</span>
+                                        <strong>Llave:</strong> <span class="d-block">{{ $qr->llave_nombre }}</span>
+                                        <strong>Expira:</strong> <span class="d-block small">{{ \Carbon\Carbon::parse($qr->expira_en)->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm btn-ver-qr w-100 mt-2"
                                             data-qr-code="{{ $qr->codigo_qr }}"
                                             data-recinto-nombre="{{ $qr->recinto_nombre }}"
                                             data-llave-nombre="{{ $qr->llave_nombre }}">
-                                        <i class="bi bi-eye"></i> Ver QR
+                                        <i class="bi bi-eye"></i> <span class="d-none d-sm-inline">Ver </span>QR
                                     </button>
                                 </div>
                             </div>
@@ -129,7 +186,7 @@
 
 <!-- Modal para mostrar QR -->
 <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="qrModalLabel">
@@ -138,14 +195,20 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <div id="qr-info" class="mb-3">
-                    <p><strong>Recinto:</strong> <span id="modal-recinto"></span></p>
-                    <p><strong>Llave:</strong> <span id="modal-llave"></span></p>
-                    <p><strong>Código:</strong> <span id="modal-codigo"></span></p>
+                <div id="qr-info" class="mb-3 row">
+                    <div class="col-12 col-md-4 mb-2">
+                        <strong>Recinto:</strong> <span id="modal-recinto" class="d-block d-md-inline"></span>
+                    </div>
+                    <div class="col-12 col-md-4 mb-2">
+                        <strong>Llave:</strong> <span id="modal-llave" class="d-block d-md-inline"></span>
+                    </div>
+                    <div class="col-12 col-md-4 mb-2">
+                        <strong>Código:</strong> <span id="modal-codigo" class="d-block d-md-inline small"></span>
+                    </div>
                 </div>
                
-                <div id="qr-image-container">
-                    <img id="qr-image" src="" alt="Código QR" style="max-width: 100%; height: auto;">
+                <div id="qr-image-container" class="mb-3">
+                    <img id="qr-image" src="" alt="Código QR" class="img-fluid" style="max-width: 250px; height: auto;">
                 </div>
                
                 <div class="mt-3">
@@ -308,20 +371,20 @@ $(document).ready(function() {
        
         qrs.forEach(function(qr) {
             html += `
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card border-success">
-                        <div class="card-body">
-                            <h6 class="card-title">${qr.codigo_qr}</h6>
-                            <p class="card-text">
-                                <strong>Recinto:</strong> ${qr.recinto_nombre}<br>
-                                <strong>Llave:</strong> ${qr.llave_nombre}<br>
-                                <small class="text-muted">Expira: ${qr.expira_en_humano}</small>
-                            </p>
-                            <button class="btn btn-primary btn-sm btn-ver-qr"
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card border-success h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-truncate">${qr.codigo_qr}</h6>
+                            <div class="card-text flex-grow-1">
+                                <strong>Recinto:</strong> <span class="d-block">${qr.recinto_nombre}</span>
+                                <strong>Llave:</strong> <span class="d-block">${qr.llave_nombre}</span>
+                                <small class="text-muted d-block">Expira: ${qr.expira_en_humano}</small>
+                            </div>
+                            <button class="btn btn-primary btn-sm btn-ver-qr w-100 mt-2"
                                     data-qr-code="${qr.codigo_qr}"
                                     data-recinto-nombre="${qr.recinto_nombre}"
                                     data-llave-nombre="${qr.llave_nombre}">
-                                <i class="bi bi-eye"></i> Ver QR
+                                <i class="bi bi-eye"></i> <span class="d-none d-sm-inline">Ver </span>QR
                             </button>
                         </div>
                     </div>
@@ -377,24 +440,62 @@ $(document).ready(function() {
     transition: transform 0.2s;
 }
 
-
 .card:hover {
     transform: translateY(-2px);
 }
 
-
 .wrapper {
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
-
 
 .main-content {
     background: #f8f9fa;
     min-height: 100vh;
     padding: 20px;
     border-radius: 10px;
+}
+
+/* Enhanced responsive grid */
+.row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+@media (max-width: 576px) {
+    .row.g-3 {
+        --bs-gutter-x: 0.5rem;
+        --bs-gutter-y: 0.5rem;
+    }
+}
+
+/* Card improvements */
+.card {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.h-100 {
+    height: 100% !important;
+}
+
+/* Text truncation for long names */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+    .modal-lg {
+        max-width: 90vw;
+    }
 }
 </style>
 @endpush

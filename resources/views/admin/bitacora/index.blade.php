@@ -98,6 +98,10 @@
                                             <span class="text-primary">{{ $evento->fecha }}</span>
                                         </div>
                                         <div class="mb-2">
+                                                <strong><i class="bi bi-person"></i> Realizado por:</strong> 
+                                                <span>{{ $evento->usuario->name ?? 'N/A' }}</span>
+                                            </div>
+                                        <div class="mb-2">
                                             <strong><i class="bi bi-chat-text"></i> Observación:</strong> 
                                             <span>{{ $evento->observacion }}</span>
                                         </div>
