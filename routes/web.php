@@ -194,4 +194,9 @@ Route::middleware(['auth', 'role:soporte'])->group(function () {
 });
 Route::delete('/evento/{evento}', [EventoController::class, 'destroy'])->name('evento.destroy');
 
+// Rutas API para cargar especialidades
+Route::get('/api/especialidades/todas', [EspecialidadController::class, 'getAll'])->name('api.especialidades.todas');
+Route::get('/api/instituciones/{institucion}/especialidades', [EspecialidadController::class, 'getByInstitucion'])->name('api.especialidades.by-institucion');
+Route::get('/api/secciones/{seccion}/especialidades', [SeccionController::class, 'getEspecialidades'])->name('api.seccion.especialidades');
+
 require __DIR__.'/auth.php';

@@ -146,9 +146,78 @@
                             </td>
                         </tr>
                         {{-- Modal Editar --}}
-                        <div class="modal fade" id="modalEditarSeccion-{{ $seccion->id }}" tabindex="-1" aria-hidden="true">
-                            ...existing code...
+
+                        {{-- Modal Editar --}}
+                        
+                        <div class="modal fade" id="modalEditarSeccion-{{ $seccion->id }}" tabindex="-1" aria-labelledby="modalEditarSeccionLabel-{{ $seccion->id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 rounded-0" id="modalEditarSeccionContent">
+                            <div class="modal-header rounded-0 custom-header">
+                                <button type="button" class="btn p-0 me-3" data-bs-dismiss="modal" aria-label="Volver" style="color: #FFD600; font-size: 1.5rem; background: none; border: none;">
+                                <span class="icono-atras">
+                                    <i><img width="40" height="40" src="https://img.icons8.com/external-solid-adri-ansyah/64/FAB005/external-ui-basic-ui-solid-adri-ansyah-26.png" alt="external-ui-basic-ui-solid-adri-ansyah-26"/></i>
+                                </span>
+                                </button>
+                                <h3 class="flex-grow-1">Editar sección</h3>
+                            </div>
+                            <div class="modal-body pb-0" style="border-bottom: 8px solid #003366;">
+                                <form id="formEditarSeccion-{{ $seccion->id }}" action="{{ route('seccion.update', $seccion->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                
+                                <div class="mb-3">
+                                    <label for="nombreSeccion-{{ $seccion->id }}" class="form-label mb-1">Nombre de la sección</label>
+                                    <input type="text" name="nombre" class="form-control @if(session('modal_editar_id') == $seccion->id && $errors->has('nombre')) is-invalid @endif"
+                                        id="nombreSeccion-{{ $seccion->id }}" value="{{ old('nombre', $seccion->nombre) }}" required>
+                                    @if(session('modal_editar_id') == $seccion->id && $errors->has('nombre'))
+                                        <div class="invalid-feedback">{{ $errors->first('nombre') }}</div>
+                                    @endif
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="selectInstitucion-{{ $seccion->id }}" class="form-label mb-1">Institución</label>
+                                    <select id="selectInstitucion-{{ $seccion->id }}" name="id_institucion" class="form-select @if(session('modal_editar_id') == $seccion->id && $errors->has('id_institucion')) is-invalid @endif">
+                                        @foreach($instituciones as $institucion)
+                                            <option value="{{ $institucion->id }}" {{ $seccion->id_institucion == $institucion->id ? 'selected' : '' }}>{{ $institucion->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if(session('modal_editar_id') == $seccion->id && $errors->has('id_institucion'))
+                                        <div class="invalid-feedback">{{ $errors->first('id_institucion') }}</div>
+                                    @endif
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="especialidadSeccion-{{ $seccion->id }}" class="form-label mb-1">Especialidades</label>
+                                    @if(session('modal_editar_id') == $seccion->id && $errors->has('especialidades'))
+                                        <div class="invalid-feedback d-block">{{ $errors->first('especialidades') }}</div>
+                                    @endif
+                                    
+                                    <div class="row">
+                                        @foreach ($especialidades as $especialidad)
+                                            <div class="col-md-6 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="especialidades[]" value="{{ $especialidad->id }}" 
+                                                        id="especialidad{{ $especialidad->id }}_seccion{{ $seccion->id }}"
+                                                        {{ $seccion->especialidades->contains($especialidad->id) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="especialidad{{ $especialidad->id }}_seccion{{ $seccion->id }}">
+                                                        {{ $especialidad->nombre }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-4 mb-2">
+                                    <button type="button" class="btn btn-outline-danger rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-guardar rounded-pill px-4">Guardar</button>
+                                </div>
+                                </form>
+                            </div>
+                            </div>
                         </div>
+                        </div>
+
+
                         {{-- Modal Eliminar --}}
                         <div class="modal fade" id="modalEliminarSeccion-{{ $seccion->id }}" tabindex="-1" aria-labelledby="modalSeccionEliminarLabel-{{ $seccion->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
@@ -749,15 +818,12 @@
                 // Agregar event listener al formulario si no lo tiene
                 if (!form.hasAttribute('data-listener-added')) {
                     form.addEventListener('submit', function(e) {
-                        // Ocultar mensajes de validación anteriores
-                        ocultarMensajeValidacion(seccionId);
-
-                        // Validar especialidades usando checkboxes
-                        const checkboxesChecked = form.querySelectorAll('input[name="especialidades[]"]:checked');
-
-                        if (checkboxesChecked.length === 0) {
+                        // Validar que hay al menos una especialidad seleccionada
+                        const especialidadesInputs = form.querySelectorAll('input[name="especialidades[]"]');
+                        
+                        if (especialidadesInputs.length === 0) {
                             e.preventDefault();
-                            mostrarMensajeValidacion(seccionId, 'Debe asignar al menos una especialidad a la sección');
+                            alert('Debe agregar al menos una especialidad');
                             return false;
                         }
                     });
@@ -775,6 +841,11 @@
             });
         });
     });
+
+// JavaScript súper simple - solo validación si es necesaria
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sistema de checkboxes cargado correctamente');
+});
 </script>
 @endsection
 

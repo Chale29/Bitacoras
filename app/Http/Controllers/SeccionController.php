@@ -152,43 +152,20 @@ class SeccionController extends Controller
             DB::beginTransaction();
             
             // Actualizar la sección
-            $data = $request->validated();
             $seccion->update([
-                'nombre' => $data['nombre'],
-                'id_institucion' => $data['id_institucion'] ?? $seccion->id_institucion,
+                'nombre' => $request->nombre,
+                'id_institucion' => $request->id_institucion,
             ]);
             
-            // Sincronizar especialidades
-            if ($request->has('especialidades') && is_array($request->especialidades)) {
-                $especialidades = array_filter($request->especialidades); // Filtrar valores vacíos
-                
-                if (!empty($especialidades)) {
-                    // Preparar datos para la tabla pivot con condición = 1
-                    $pivotData = [];
-                    foreach ($especialidades as $especialidadId) {
-                        $pivotData[$especialidadId] = [
-                            'condicion' => 1,
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ];
-                    }
-                    
-                    // Sincronizar especialidades (elimina las anteriores y agrega las nuevas)
-                    $seccion->especialidades()->sync($pivotData);
-                }
-            } else {
-                // Si no hay especialidades seleccionadas, desconectar todas
-                $seccion->especialidades()->sync([]);
-            }
+            // Sincronizar especialidades (súper simple)
+            $especialidades = $request->get('especialidades', []);
+            $seccion->especialidades()->sync($especialidades);
             
             DB::commit();
             return redirect()->route('seccion.index')->with('success', 'Sección actualizada correctamente.');
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['error' => 'Hubo un problema al actualizar la sección: ' . $e->getMessage()])
-                ->with('modal_editar_id', $seccion->id);
+            return redirect()->back()->withInput()->with('error', 'Error al actualizar sección: ' . $e->getMessage());
         }
     }
 
@@ -214,5 +191,33 @@ class SeccionController extends Controller
             $message = 'Sección restaurada correctamente.';
         }
         return redirect()->route('seccion.index')->with('success', $message);
+    }
+
+    /**
+     * Get especialidades for a specific seccion (API endpoint)
+     */
+    public function getEspecialidades($seccionId)
+    {
+        try {
+            $seccion = Seccione::with(['especialidades' => function($query) {
+                $query->where('especialidad.condicion', 1)
+                      ->where('especialidad_seccion.condicion', 1);
+            }])->find($seccionId);
+
+            if (!$seccion) {
+                return response()->json([], 404);
+            }
+
+            $especialidades = $seccion->especialidades->map(function($especialidad) {
+                return [
+                    'id' => $especialidad->id,
+                    'nombre' => $especialidad->nombre
+                ];
+            });
+
+            return response()->json($especialidades);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al cargar especialidades'], 500);
+        }
     }
 }

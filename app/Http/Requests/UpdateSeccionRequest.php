@@ -31,9 +31,9 @@ class UpdateSeccionRequest extends FormRequest
         $seccionId = $seccion->id;
         return [
             'nombre' => 'required|string|max:55|unique:seccione,nombre,' . $seccionId . ',id,condicion,1',
-            'id_institucion' => 'nullable|exists:institucione,id',
-            'especialidades' => 'required|array|min:1',
-            'especialidades.*' => 'required|exists:especialidad,id',
+            'id_institucion' => 'required|exists:institucione,id',
+            'especialidades' => 'nullable|array',
+            'especialidades.*' => 'exists:especialidad,id',
         ];  
     }
 
@@ -44,6 +44,7 @@ class UpdateSeccionRequest extends FormRequest
             'nombre.string' => 'El nombre debe ser un texto válido.',
             'nombre.max' => 'El nombre no puede exceder los 55 caracteres.',
             'nombre.unique' => 'Ya existe una sección con este nombre.',
+            'id_institucion.required' => 'La institución es obligatoria.',
             'id_institucion.exists' => 'La institución seleccionada no es válida.',
             'especialidades.required' => 'Debe seleccionar al menos una especialidad.',
             'especialidades.array' => 'Las especialidades deben ser un listado válido.',
@@ -55,62 +56,7 @@ class UpdateSeccionRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function (Validator $v) {
-            $especialidades = (array) $this->input('especialidades', []);
-            $institucionId = $this->input('id_institucion');
-
-            if (empty($especialidades)) {
-                return;
-            }
-
-            if ($institucionId) {
-                if (Schema::hasTable('especialidad_institucion')) {
-                    // Validar vía pivote: todas deben estar vinculadas a la institución enviada
-                    $vinculadas = DB::table('especialidad_institucion')
-                        ->whereIn('especialidad_id', $especialidades)
-                        ->where('institucion_id', $institucionId)
-                        ->distinct()
-                        ->count('especialidad_id');
-
-                    if ($vinculadas < count($especialidades)) {
-                        $v->errors()->add('especialidades', 'Las especialidades seleccionadas deben pertenecer a la institución elegida.');
-                    }
-                } else {
-                    // Fallback 1:N
-                    $countMismatched = Especialidade::whereIn('id', $especialidades)
-                        ->where('id_institucion', '!=', $institucionId)
-                        ->count();
-
-                    if ($countMismatched > 0) {
-                        $v->errors()->add('especialidades', 'Las especialidades seleccionadas deben pertenecer a la institución elegida.');
-                    }
-                }
-            } else {
-                // Cuando no se especifica institución, exigir coherencia entre especialidades
-                if (Schema::hasTable('especialidad_institucion')) {
-                    // Debe existir al menos una institución común a todas las especialidades seleccionadas
-                    $existeComun = DB::table('especialidad_institucion')
-                        ->whereIn('especialidad_id', $especialidades)
-                        ->groupBy('institucion_id')
-                        ->havingRaw('COUNT(DISTINCT especialidad_id) = ?', [count($especialidades)])
-                        ->exists();
-
-                    if (!$existeComun) {
-                        $v->errors()->add('especialidades', 'No puede seleccionar especialidades de diferentes instituciones sin una institución en común.');
-                    }
-                } else {
-                    // Fallback 1:N: todas deben tener el mismo id_institucion
-                    $distinctInstituciones = Especialidade::whereIn('id', $especialidades)
-                        ->select('id_institucion')
-                        ->distinct()
-                        ->count();
-
-                    if ($distinctInstituciones > 1) {
-                        $v->errors()->add('especialidades', 'No puede seleccionar especialidades de diferentes instituciones.');
-                    }
-                }
-            }
-        });
+        // Sin validaciones adicionales - solo las básicas
     }
 
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)

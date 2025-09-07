@@ -13,21 +13,21 @@ let rolesVisible = false;
 
 // Cerrar otros submenús al abrir uno
 function closeAllSubmenus(except) {
-  if (except !== 'personal' && visible) {
+  if (except !== 'personal' && visible && submenu) {
     submenu.style.display = 'none';
     visible = false;
   }
-  if (except !== 'recinto' && recintoVisible) {
+  if (except !== 'recinto' && recintoVisible && recintoSubmenu) {
     recintoSubmenu.style.display = 'none';
     recintoVisible = false;
   }
-  if (except !== 'roles' && rolesVisible) {
+  if (except !== 'roles' && rolesVisible && rolesSubmenu) {
     rolesSubmenu.style.display = 'none';
     rolesVisible = false;
   }
 }
 
-btn.addEventListener('click', (e) => {
+btn?.addEventListener('click', (e) => {
   e.stopPropagation();
   closeAllSubmenus('personal');
   visible = !visible;
@@ -37,7 +37,7 @@ btn.addEventListener('click', (e) => {
   }
 });
 
-recintoBtn.addEventListener('click', (e) => {
+recintoBtn?.addEventListener('click', (e) => {
   e.stopPropagation();
   closeAllSubmenus('recinto');
   recintoVisible = !recintoVisible;
@@ -47,7 +47,7 @@ recintoBtn.addEventListener('click', (e) => {
   }
 });
 
-rolesBtn.addEventListener('click', (e) => {
+rolesBtn?.addEventListener('click', (e) => {
   e.stopPropagation();
   closeAllSubmenus('roles');
   rolesVisible = !rolesVisible;
@@ -58,15 +58,15 @@ rolesBtn.addEventListener('click', (e) => {
 });
 
 document.addEventListener('click', function (event) {
-  if (!btn.contains(event.target) && !submenu.contains(event.target)) {
+  if (btn && submenu && !btn.contains(event.target) && !submenu.contains(event.target)) {
     submenu.style.display = 'none';
     visible = false;
   }
-  if (!recintoBtn.contains(event.target) && !recintoSubmenu.contains(event.target)) {
+  if (recintoBtn && recintoSubmenu && !recintoBtn.contains(event.target) && !recintoSubmenu.contains(event.target)) {
     recintoSubmenu.style.display = 'none';
     recintoVisible = false;
   }
-  if (!rolesBtn.contains(event.target) && !rolesSubmenu.contains(event.target)) {
+  if (rolesBtn && rolesSubmenu && !rolesBtn.contains(event.target) && !rolesSubmenu.contains(event.target)) {
     rolesSubmenu.style.display = 'none';
     rolesVisible = false;
   }

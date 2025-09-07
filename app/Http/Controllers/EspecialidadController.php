@@ -177,4 +177,56 @@ class EspecialidadController extends Controller
         }
         return redirect()->route('especialidad.index')->with('success', $message);
     }
+
+    /**
+     * Get all especialidades (API endpoint)
+     */
+    public function getAll()
+    {
+        try {
+            $especialidades = Especialidade::where('condicion', 1)
+                ->select('id', 'nombre')
+                ->orderBy('nombre')
+                ->get();
+
+            return response()->json($especialidades);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al cargar especialidades'], 500);
+        }
+    }
+
+    /**
+     * Get especialidades by institucion (API endpoint)
+     */
+    public function getByInstitucion($institucionId)
+    {
+        try {
+            // Verificar si existe tabla pivot
+            $hasPivot = \Schema::hasTable('especialidad_institucion');
+            $hasIdInstitucionColumn = \Schema::hasColumn('especialidad', 'id_institucion');
+
+            if ($hasPivot) {
+                // Usar tabla pivot M2M
+                $especialidades = DB::table('especialidad_institucion')
+                    ->join('especialidad', 'especialidad.id', '=', 'especialidad_institucion.especialidad_id')
+                    ->where('especialidad_institucion.institucion_id', $institucionId)
+                    ->where('especialidad.condicion', 1)
+                    ->select('especialidad.id', 'especialidad.nombre')
+                    ->get();
+            } elseif ($hasIdInstitucionColumn) {
+                // Usar columna id_institucion 1:N
+                $especialidades = Especialidade::where('id_institucion', $institucionId)
+                    ->where('condicion', 1)
+                    ->select('id', 'nombre')
+                    ->get();
+            } else {
+                // Sin relación definida, devolver vacío
+                $especialidades = collect();
+            }
+
+            return response()->json($especialidades);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Error al cargar especialidades'], 500);
+        }
+    }
 }
