@@ -77,7 +77,7 @@
                                 </div>
                                 <div class="evento-field" data-label="Institución">
                                     <span class="field-label d-lg-none">Institución:</span>
-                                    <span class="field-value">{{ $evento->horario->recinto->institucion->nombre ?? '' }}</span>
+                                    <span class="field-value">{{ $evento->institucion->nombre ?? '' }}</span>
                                 </div>
                                 <div class="evento-field" data-label="Condición">
                                     <span class="field-label d-lg-none">Condición:</span>
@@ -525,7 +525,7 @@
         // Función para abrir modal responsivo
         function abrirModal(evento) {
             const isMobile = window.innerWidth < 768;
-            
+
             Swal.fire({
                 title: 'Detalles del Evento',
                 html: `
@@ -641,10 +641,14 @@
                 if (data.estado) {
                     formData.append('estado', data.estado);
                 }
+
                 formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
-                const response = await fetch(`/evento/${id}/update`, {
-                    method: 'POST',
+                console.error(data);
+                console.error(formData);
+
+                const response = await fetch(`/evento/${id}`, {
+                    method: 'PATCH',
                     body: formData
                 });
 
@@ -670,6 +674,7 @@
                     title: 'Error',
                     text: error.message
                 });
+                console.error(data);
             }
         }
 

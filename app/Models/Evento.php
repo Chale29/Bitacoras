@@ -15,6 +15,7 @@ class Evento extends Model
         'id_seccion',
         'id_subarea',
         'id_horario',
+        'id_institucion',
         'id_horario_leccion',
         'user_id',
         'fecha',
@@ -34,25 +35,25 @@ class Evento extends Model
         return $this->belongsTo(Bitacora::class, 'id_bitacora');
     }
 
-     public function seccion()
+    public function seccion()
     {
-    
+
         return $this->belongsTo(Seccione::class, 'id_seccion');
-    
+
     }
 
     public function subarea()
     {
-    
+
         return $this->belongsTo(Subarea::class, 'id_subarea');
-    
+
     }
 
     public function horarioLeccion()
     {
         return $this->belongsTo(HorarioLeccion::class, 'id_horario_leccion');
     }
-    
+
     public function horario()
     {
         return $this->belongsTo(Horario::class, 'id_horario');
@@ -68,10 +69,15 @@ class Evento extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function institucion()
+    {
+        return $this->belongsTo(Institucione::class, 'id_institucion');
+    }
+
     // Método para obtener solo profesores
     public function profesor()
     {
-        return $this->belongsTo(User::class, 'user_id')->whereHas('roles', function($query) {
+        return $this->belongsTo(User::class, 'user_id')->whereHas('roles', function ($query) {
             $query->where('name', 'profesor');
         });
     }

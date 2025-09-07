@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateEventoRequest;
+use App\Models\Institucion;
+use App\Models\Institucione;
 use App\Models\Profesor;
 use App\Models\Bitacora;
 use Illuminate\Support\Facades\DB;
@@ -38,18 +40,18 @@ class EventoController extends Controller
         // Aplicar filtro de búsqueda si se proporciona
         if ($request->has('busqueda') && $request->busqueda !== '') {
             $busqueda = $request->busqueda;
-            $query->where(function($q) use ($busqueda) {
-                $q->whereHas('usuario', function($userQuery) use ($busqueda) {
+            $query->where(function ($q) use ($busqueda) {
+                $q->whereHas('usuario', function ($userQuery) use ($busqueda) {
                     $userQuery->where('name', 'LIKE', "%{$busqueda}%");
                 })
-                ->orWhereHas('horario.recinto', function($recintoQuery) use ($busqueda) {
-                    $recintoQuery->where('nombre', 'LIKE', "%{$busqueda}%");
-                })
-                ->orWhereHas('horario.recinto.institucion', function($institucionQuery) use ($busqueda) {
-                    $institucionQuery->where('nombre', 'LIKE', "%{$busqueda}%");
-                })
-                ->orWhere('observacion', 'LIKE', "%{$busqueda}%")
-                ->orWhere('prioridad', 'LIKE', "%{$busqueda}%");
+                    ->orWhereHas('horario.recinto', function ($recintoQuery) use ($busqueda) {
+                        $recintoQuery->where('nombre', 'LIKE', "%{$busqueda}%");
+                    })
+                    ->orWhereHas('horario.recinto.institucion', function ($institucionQuery) use ($busqueda) {
+                        $institucionQuery->where('nombre', 'LIKE', "%{$busqueda}%");
+                    })
+                    ->orWhere('observacion', 'LIKE', "%{$busqueda}%")
+                    ->orWhere('prioridad', 'LIKE', "%{$busqueda}%");
             });
         }
 
@@ -102,7 +104,7 @@ class EventoController extends Controller
 
         // Aplicar filtro por recinto si se proporciona
         if ($request->has('recinto') && $request->recinto !== '') {
-            $query->whereHas('horario.recinto', function($recintoQuery) use ($request) {
+            $query->whereHas('horario.recinto', function ($recintoQuery) use ($request) {
                 $recintoQuery->where('id', $request->recinto);
             });
         }
@@ -110,17 +112,17 @@ class EventoController extends Controller
         // Aplicar filtro de búsqueda si se proporciona
         if ($request->has('busqueda') && $request->busqueda !== '') {
             $busqueda = $request->busqueda;
-            $query->where(function($q) use ($busqueda) {
-                $q->whereHas('usuario', function($userQuery) use ($busqueda) {
+            $query->where(function ($q) use ($busqueda) {
+                $q->whereHas('usuario', function ($userQuery) use ($busqueda) {
                     $userQuery->where('name', 'LIKE', "%{$busqueda}%");
                 })
-                ->orWhereHas('horario.recinto', function($recintoQuery) use ($busqueda) {
-                    $recintoQuery->where('nombre', 'LIKE', "%{$busqueda}%");
-                })
-                ->orWhereHas('horario.recinto.institucion', function($institucionQuery) use ($busqueda) {
-                    $institucionQuery->where('nombre', 'LIKE', "%{$busqueda}%");
-                })
-                ->orWhere('observacion', 'LIKE', "%{$busqueda}%");
+                    ->orWhereHas('horario.recinto', function ($recintoQuery) use ($busqueda) {
+                        $recintoQuery->where('nombre', 'LIKE', "%{$busqueda}%");
+                    })
+                    ->orWhereHas('horario.recinto.institucion', function ($institucionQuery) use ($busqueda) {
+                        $institucionQuery->where('nombre', 'LIKE', "%{$busqueda}%");
+                    })
+                    ->orWhere('observacion', 'LIKE', "%{$busqueda}%");
             });
         }
 
@@ -143,7 +145,7 @@ class EventoController extends Controller
 
         // Obtener todos los recintos para el dropdown (sin filtro de condición por ahora)
         $recintos = \App\Models\Recinto::orderBy('nombre')->get();
-        
+
         // Debug: verificar si se están cargando los recintos
         \Log::info('Recintos cargados para soporte: ' . $recintos->count());
 
@@ -166,12 +168,13 @@ class EventoController extends Controller
         return view('Evento.index_soporte', compact('eventos', 'recintos'));
     }
 
-        public function index_profesor(Request $request)
+    public function index_profesor(Request $request)
     {
         $eventos = Evento::with([
             'bitacora',
             'usuario',
             'seccion',
+            'institucion',
             'subarea.especialidad',
             'horario.recinto.institucion'
         ])
@@ -198,24 +201,24 @@ class EventoController extends Controller
                     ->where('idHorario', $horario->id)
                     ->where('idLeccion', $leccion->id)
                     ->first();
-                
+
                 // Debug: Log the structure of horarioLeccion
                 \Log::info('HorarioLeccion data:', [
                     'horario_id' => $horario->id,
                     'leccion_id' => $leccion->id,
-                    'horario_leccion' => $horarioLeccion ? (array)$horarioLeccion : null
+                    'horario_leccion' => $horarioLeccion ? (array) $horarioLeccion : null
                 ]);
-                
+
                 // Intentar diferentes nombres de columnas
-                $leccion->hora_inicio = $horarioLeccion->horaInicio ?? 
-                                       $horarioLeccion->hora_inicio ?? 
-                                       $leccion->hora_inicio ?? null;
-                                       
-                $leccion->hora_fin = $horarioLeccion->horaFin ?? 
-                                    $horarioLeccion->hora_fin ?? 
-                                    $horarioLeccion->hora_final ?? 
-                                    $leccion->hora_final ?? null;
-                
+                $leccion->hora_inicio = $horarioLeccion->horaInicio ??
+                    $horarioLeccion->hora_inicio ??
+                    $leccion->hora_inicio ?? null;
+
+                $leccion->hora_fin = $horarioLeccion->horaFin ??
+                    $horarioLeccion->hora_fin ??
+                    $horarioLeccion->hora_final ??
+                    $leccion->hora_final ?? null;
+
                 return $leccion;
             });
         })->unique('id');
@@ -256,8 +259,20 @@ class EventoController extends Controller
             }
         }
 
-        return view('Evento.index_profesor', compact('eventos', 'bitacoras', 'seccione', 
-        'subareas', 'horarios', 'lecciones', 'horarioSeleccionado', 'fecha', 'seccion', 'subarea', 'recinto', 'bitacoraId'));
+        return view('Evento.index_profesor', compact(
+            'eventos',
+            'bitacoras',
+            'seccione',
+            'subareas',
+            'horarios',
+            'lecciones',
+            'horarioSeleccionado',
+            'fecha',
+            'seccion',
+            'subarea',
+            'recinto',
+            'bitacoraId'
+        ));
     }
 
     //funcion de crear
@@ -265,6 +280,7 @@ class EventoController extends Controller
     {
         $eventos = Evento::with('bitacora', 'usuario', 'seccion', 'subarea', 'horario')->get();
         $bitacoras = Bitacora::all();
+        $instituciones = Institucione::all();
         $seccione = Seccione::all();
         $subareas = Subarea::all();
 
@@ -294,32 +310,32 @@ class EventoController extends Controller
                 if ($horarioSeleccionado) {
                     $horarios = collect([$horarioSeleccionado]);
                     // Asignar horario_data a cada lección con información de tiempo
-                    $lecciones = $horarioSeleccionado->leccion->map(function($leccion) use ($horarioSeleccionado) {
+                    $lecciones = $horarioSeleccionado->leccion->map(function ($leccion) use ($horarioSeleccionado) {
                         $leccion->horario_data = $horarioSeleccionado;
-                        
+
                         // Obtener información de tiempo
                         $horarioLeccion = \DB::table('horario_leccion')
                             ->where('idHorario', $horarioSeleccionado->id)
                             ->where('idLeccion', $leccion->id)
                             ->first();
-                        
+
                         // Debug: Log the structure
                         \Log::info('HorarioLeccion create data:', [
                             'horario_id' => $horarioSeleccionado->id,
                             'leccion_id' => $leccion->id,
-                            'horario_leccion' => $horarioLeccion ? (array)$horarioLeccion : null
+                            'horario_leccion' => $horarioLeccion ? (array) $horarioLeccion : null
                         ]);
-                        
+
                         // Intentar diferentes nombres de columnas
-                        $leccion->hora_inicio = $horarioLeccion->horaInicio ?? 
-                                               $horarioLeccion->hora_inicio ?? 
-                                               $leccion->hora_inicio ?? null;
-                                               
-                        $leccion->hora_fin = $horarioLeccion->horaFin ?? 
-                                            $horarioLeccion->hora_fin ?? 
-                                            $horarioLeccion->hora_final ?? 
-                                            $leccion->hora_final ?? null;
-                        
+                        $leccion->hora_inicio = $horarioLeccion->horaInicio ??
+                            $horarioLeccion->hora_inicio ??
+                            $leccion->hora_inicio ?? null;
+
+                        $leccion->hora_fin = $horarioLeccion->horaFin ??
+                            $horarioLeccion->hora_fin ??
+                            $horarioLeccion->hora_final ??
+                            $leccion->hora_final ?? null;
+
                         return $leccion;
                     });
                     $fecha = $horarioSeleccionado->fecha;
@@ -343,7 +359,8 @@ class EventoController extends Controller
             'recinto',
             'horarioSeleccionado',
             'lecciones',
-            'bitacoraId'
+            'bitacoraId',
+            'instituciones'
         ));
     }
 
@@ -374,14 +391,15 @@ class EventoController extends Controller
             $bitacora = Bitacora::where('id_recinto', $horario->recinto->id)->first();
             if (!$bitacora) {
                 throw new Exception('No se encontró una bitácora para el recinto de este horario.');
-            }        
-            if ($bitacora->condicion == 0){
+            }
+            if ($bitacora->condicion == 0) {
                 return back()->withErrors(['error' => 'La bitácora seleccionada no está activa.']);
             }
             $evento->id_bitacora = $bitacora->id;
             $evento->id_seccion = $request->id_seccion;
             $evento->id_subarea = $request->id_subarea;
             $evento->id_horario = $horario->id;
+            $evento->id_institucion = $request->id_institucion;
             $evento->id_horario_leccion = $idHorarioLeccion;
             $evento->user_id = auth()->id();
             $evento->hora_envio = now()->format('H:i:s');
@@ -468,6 +486,7 @@ class EventoController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            Log::info(implode($request->all()));
             Log::info('Intentando actualizar evento', [
                 'id' => $id,
                 'request_all' => $request->all(),
@@ -534,16 +553,17 @@ class EventoController extends Controller
     {
         $message = '';
         $evento = Evento::find($id);
-        if ($evento->condicion == 1)
-        {
-            Evento::where('id',$evento->id)
-            ->update(['condicion' => 0
-            ]);
+        if ($evento->condicion == 1) {
+            Evento::where('id', $evento->id)
+                ->update([
+                    'condicion' => 0
+                ]);
             $message = 'Evento eliminado';
         } else {
-            Evento::where('id',$evento->id)
-            ->update(['condicion' => 1
-            ]);
+            Evento::where('id', $evento->id)
+                ->update([
+                    'condicion' => 1
+                ]);
             $message = 'Evento restaurado';
         }
         return redirect()->route('evento.index_profesor')->with('success', $message);
@@ -554,7 +574,7 @@ class EventoController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             $eventos = Evento::with([
                 'bitacora',
                 'usuario',
@@ -562,10 +582,10 @@ class EventoController extends Controller
                 'subarea.especialidad',
                 'horario.recinto.institucion'
             ])
-            ->where('user_id', $user->id)
-            ->where('condicion', 1)
-            ->orderBy('created_at', 'desc')
-            ->get();
+                ->where('user_id', $user->id)
+                ->where('condicion', 1)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             $latestUpdate = $eventos->max('updated_at');
             $currentTimestamp = $request->query('timestamp');
@@ -604,9 +624,9 @@ class EventoController extends Controller
                 'subarea.especialidad',
                 'horario.recinto.institucion'
             ])
-            ->where('condicion', 1)
-            ->orderBy('created_at', 'desc')
-            ->get();
+                ->where('condicion', 1)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             $latestUpdate = $eventos->max('updated_at');
             $currentTimestamp = $request->query('timestamp');
@@ -639,9 +659,9 @@ class EventoController extends Controller
     {
         try {
             $evento = Evento::with([
-                'usuario', 
-                'horario.recinto.institucion', 
-                'subarea.especialidad', 
+                'usuario',
+                'horario.recinto.institucion',
+                'subarea.especialidad',
                 'seccion'
             ])->findOrFail($id);
 
