@@ -32,6 +32,8 @@ class EventoController extends Controller
             'horario.recinto.institucion'
         ]);
 
+        
+
         // Aplicar filtro por estado si se proporciona
         if ($request->has('estado') && $request->estado !== '') {
             $query->where('estado', $request->estado);
@@ -178,6 +180,7 @@ class EventoController extends Controller
             'subarea.especialidad',
             'horario.recinto.institucion'
         ])
+            ->where('user_id', auth()->id()) // Solo eventos del usuario autenticado
             ->orderBy('created_at', 'desc')
             ->get();
 
