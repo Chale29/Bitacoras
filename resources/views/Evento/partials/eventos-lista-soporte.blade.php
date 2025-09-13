@@ -4,7 +4,6 @@
         <div data-label="Recinto">{{ $evento->horario->recinto->nombre ?? '' }}</div>
         <div data-label="Fecha">{{ \Carbon\Carbon::parse($evento->fecha)->format('d/m/Y') }}</div>
         <div data-label="Hora">{{ \Carbon\Carbon::parse($evento->hora_envio)->format('H:i') }}</div>
-        <div data-label="Institución">{{ $evento->horario->recinto->institucion->nombre ?? '' }}</div>
         <div data-label="Prioridad">
             <span class="badge bg-secondary text-white" style="background-color: #6c757d !important; color: #fff !important;">
                 {{ ucfirst($evento->prioridad) }}

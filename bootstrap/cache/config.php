@@ -6,18 +6,18 @@
   14 => 'view',
   'app' => 
   array (
-    'name' => 'Laravel',
+    'name' => 'SIREBI',
     'env' => 'local',
     'debug' => true,
-    'url' => 'http://127.0.0.1',
+    'url' => 'https://bitacoras.infocovao.xyz',
     'frontend_url' => 'http://localhost:3000',
     'asset_url' => NULL,
     'timezone' => 'America/Costa_Rica',
-    'locale' => 'en',
-    'fallback_locale' => 'en',
+    'locale' => 'es_ES',
+    'fallback_locale' => 'es_ES',
     'faker_locale' => 'en_US',
     'cipher' => 'AES-256-CBC',
-    'key' => 'base64:KyaRpw7Wl3XmA+Iap/I8mowFoybr7IRFCgv0Nln+DwU=',
+    'key' => 'base64:jpAKAv0y5SraTfAf3is7YXYrJxCj0BAsXzLOBzShXSg=',
     'previous_keys' => 
     array (
     ),
@@ -158,8 +158,8 @@
       'file' => 
       array (
         'driver' => 'file',
-        'path' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\framework/cache/data',
-        'lock_path' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\framework/cache/data',
+        'path' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\framework/cache/data',
+        'lock_path' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\framework/cache/data',
       ),
       'memcached' => 
       array (
@@ -203,7 +203,7 @@
         'driver' => 'octane',
       ),
     ),
-    'prefix' => 'laravel_cache_',
+    'prefix' => 'sirebi_cache_',
   ),
   'database' => 
   array (
@@ -214,7 +214,7 @@
       array (
         'driver' => 'sqlite',
         'url' => NULL,
-        'database' => 'sistema-bitacoras-def',
+        'database' => 'info_sirebi',
         'prefix' => '',
         'foreign_key_constraints' => true,
         'busy_timeout' => NULL,
@@ -225,9 +225,9 @@
       array (
         'driver' => 'mysql',
         'url' => NULL,
-        'host' => '127.0.0.1',
+        'host' => 'localhost',
         'port' => '3306',
-        'database' => 'sistema-bitacoras-def',
+        'database' => 'info_sirebi',
         'username' => 'root',
         'password' => 'root',
         'unix_socket' => '',
@@ -245,9 +245,9 @@
       array (
         'driver' => 'mariadb',
         'url' => NULL,
-        'host' => '127.0.0.1',
+        'host' => 'localhost',
         'port' => '3306',
-        'database' => 'sistema-bitacoras-def',
+        'database' => 'info_sirebi',
         'username' => 'root',
         'password' => 'root',
         'unix_socket' => '',
@@ -265,9 +265,9 @@
       array (
         'driver' => 'pgsql',
         'url' => NULL,
-        'host' => '127.0.0.1',
+        'host' => 'localhost',
         'port' => '3306',
-        'database' => 'sistema-bitacoras-def',
+        'database' => 'info_sirebi',
         'username' => 'root',
         'password' => 'root',
         'charset' => 'utf8',
@@ -280,9 +280,9 @@
       array (
         'driver' => 'sqlsrv',
         'url' => NULL,
-        'host' => '127.0.0.1',
+        'host' => 'localhost',
         'port' => '3306',
-        'database' => 'sistema-bitacoras-def',
+        'database' => 'info_sirebi',
         'username' => 'root',
         'password' => 'root',
         'charset' => 'utf8',
@@ -301,7 +301,7 @@
       'options' => 
       array (
         'cluster' => 'redis',
-        'prefix' => 'laravel_database_',
+        'prefix' => 'sirebi_database_',
         'persistent' => false,
       ),
       'default' => 
@@ -332,7 +332,7 @@
       'local' => 
       array (
         'driver' => 'local',
-        'root' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\app/private',
+        'root' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\app/private',
         'serve' => true,
         'throw' => false,
         'report' => false,
@@ -340,8 +340,8 @@
       'public' => 
       array (
         'driver' => 'local',
-        'root' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\app/public',
-        'url' => 'http://127.0.0.1/storage',
+        'root' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\app/public',
+        'url' => 'https://bitacoras.infocovao.xyz/storage',
         'visibility' => 'public',
         'throw' => false,
         'report' => false,
@@ -362,7 +362,7 @@
     ),
     'links' => 
     array (
-      'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\public\\storage' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\app/public',
+      'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\public\\storage' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\app/public',
     ),
   ),
   'logging' => 
@@ -387,14 +387,14 @@
       'single' => 
       array (
         'driver' => 'single',
-        'path' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
         'level' => 'debug',
         'replace_placeholders' => true,
       ),
       'daily' => 
       array (
         'driver' => 'daily',
-        'path' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
         'level' => 'debug',
         'days' => 14,
         'replace_placeholders' => true,
@@ -459,7 +459,7 @@
       ),
       'emergency' => 
       array (
-        'path' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
+        'path' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\logs/laravel.log',
       ),
       'deprecations' => 
       array (
@@ -478,12 +478,12 @@
         'transport' => 'smtp',
         'scheme' => NULL,
         'url' => NULL,
-        'host' => 'sandbox.smtp.mailtrap.io',
-        'port' => '2525',
-        'username' => '74c34fb0c8c809',
-        'password' => '0ccb7bf593826d',
+        'host' => 'smtp.gmail.com',
+        'port' => '465',
+        'username' => 'sistemashhc@hhc.co.cr',
+        'password' => 'usrtvcpdyanowwrb',
         'timeout' => NULL,
-        'local_domain' => '127.0.0.1',
+        'local_domain' => 'bitacoras.infocovao.xyz',
       ),
       'ses' => 
       array (
@@ -534,15 +534,15 @@
     ),
     'from' => 
     array (
-      'address' => 'hello@example.com',
-      'name' => 'Example',
+      'address' => 'sistemashhc@hhc.co.cr',
+      'name' => 'Sistema SIREBI',
     ),
     'markdown' => 
     array (
       'theme' => 'default',
       'paths' => 
       array (
-        0 => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\resources\\views/vendor/mail',
+        0 => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\resources\\views/vendor/mail',
       ),
     ),
   ),
@@ -679,7 +679,7 @@
     'lifetime' => 120,
     'expire_on_close' => false,
     'encrypt' => false,
-    'files' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\framework/sessions',
+    'files' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\framework/sessions',
     'connection' => NULL,
     'table' => 'sessions',
     'store' => NULL,
@@ -688,7 +688,7 @@
       0 => 2,
       1 => 100,
     ),
-    'cookie' => 'laravel_session',
+    'cookie' => 'sirebi_session',
     'path' => '/',
     'domain' => NULL,
     'secure' => NULL,
@@ -806,9 +806,9 @@
   array (
     'paths' => 
     array (
-      0 => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\resources\\views',
+      0 => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\resources\\views',
     ),
-    'compiled' => 'C:\\Users\\Estudiante-17\\Documents\\GitHub\\sistema-bitacoras-def\\storage\\framework\\views',
+    'compiled' => 'C:\\Users\\coghi\\OneDrive\\Documentos\\CodexDev\\GitHub\\sistema-bitacoras-def\\storage\\framework\\views',
   ),
   'tinker' => 
   array (

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create("subarea", function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_especialidad')->constrained('especialidad')->onDelete('cascade');
-            $table->string('nombre',55);
+            $table->string('nombre',100);
             $table->tinyInteger('condicion')->default(1);
             $table->timestamps();
         });

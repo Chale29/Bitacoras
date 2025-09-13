@@ -23,7 +23,7 @@
 
         <div class="alert alert-info">
             <i class="bi bi-info-circle"></i>
-            <strong>Vista Administrativa:</strong> Aquí puedes ver todos los códigos QR temporales generados por los profesores que aún están activos.
+            <strong>Vista Administrativa:</strong> Aquí puedes ver todas las solicitudes temporales generados por los profesores que aún están activos.
         </div>
 
 
@@ -80,13 +80,13 @@
                                             data-profesor-nombre="{{ $qr->profesor_nombre }}"
                                             data-recinto-nombre="{{ $qr->recinto_nombre }}"
                                             data-llave-nombre="{{ $qr->llave_nombre }}">
-                                        <i class="bi bi-eye"></i> Ver QR
+                                        <i class="bi bi-eye"></i> Ver Info
                                     </button>
                                    
                                     @if(!$qr->usado && \Carbon\Carbon::parse($qr->expira_en) > now())
                                         <button class="btn btn-outline-danger btn-sm ms-2 btn-escanear"
                                                 data-qr-code="{{ $qr->codigo_qr }}">
-                                            <i class="bi bi-upc-scan"></i> Simular Escaneo
+                                            <i class="bi bi-upc-scan"></i> Solicitar
                                         </button>
                                     @endif
                                 </div>
@@ -98,8 +98,8 @@
         @else
             <div class="text-center py-5" id="qrs-container">
                 <i class="bi bi-qr-code" style="font-size: 4rem; color: #6c757d;"></i>
-                <h4 class="mt-3 text-muted">No hay códigos QR activos</h4>
-                <p class="text-muted">Los profesores aún no han generado códigos QR temporales.</p>
+                <h4 class="mt-3 text-muted">No hay solicitudes activas</h4>
+                <p class="text-muted">Los profesores aún no han generado solicitudes temporales.</p>
             </div>
         @endif
     </div>
@@ -112,7 +112,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="modalVerQRLabel">
-                    <i class="bi bi-qr-code"></i> Código QR - Detalles
+                    Solicitud- Detalles
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -121,16 +121,8 @@
                     <p><strong>Profesor:</strong> <span id="modal-profesor"></span></p>
                     <p><strong>Recinto:</strong> <span id="modal-recinto"></span></p>
                     <p><strong>Llave:</strong> <span id="modal-llave"></span></p>
-                    <p><strong>Código:</strong> <span id="modal-codigo"></span></p>
                 </div>
-               
-                <div id="qr-image-container" class="mb-3">
-                    <img id="qr-image" src="" alt="Código QR" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
-                </div>
-               
-                <div class="mt-3">
-                    <small class="text-muted">Este código QR puede ser escaneado por el sistema</small>
-                </div>
+
             </div>
         </div>
     </div>
@@ -142,24 +134,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="scanSimulationModalLabel">
-                    <i class="bi bi-upc-scan me-2"></i>Simular Escaneo de QR
+                    <i class="bi bi-upc-scan me-2"></i>Solicitar 
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div class="mb-4">
-                    <i class="bi bi-qr-code scan-icon"></i>
-                </div>
-                <h5 class="mb-3">¿Estás seguro de simular el escaneo?</h5>
+                
+                <h5 class="mb-3">¿Estás seguro de realizar la solicitud?</h5>
                 <p class="text-muted mb-4">
-                    Esta acción cambiará el estado de la llave y será registrada en el sistema.
+                    Esta acción cambiará el estado de la llave y bitácora, será registrada en el sistema.
                     <br>
-                    <small><strong>Código QR:</strong> <span id="qr-code-display" class="text-primary"></span></small>
+                    
                 </p>
                 <div class="alert alert-info d-flex align-items-center" role="alert">
                     <i class="bi bi-info-circle me-2"></i>
                     <div>
-                        El escaneo simulado tendrá el mismo efecto que un escaneo real con la cámara.
+                        Al terminar la solicxitud se cambiara el estado de la llave y la bitácora asociadas 
                     </div>
                 </div>
             </div>
@@ -219,7 +209,7 @@ $(document).ready(function() {
         console.log('QR Code para escanear:', qrCode);
        
         if (!qrCode) {
-            showToast('Código QR no encontrado', 'error');
+            showToast('Cdigo QR no encontrado', 'error');
             return;
         }
        
@@ -489,7 +479,7 @@ $(document).ready(function() {
                       .data('llave-estado', qr.llave_estado);
                      
             // Notificación de cambio
-            showToast(`🔑 Llave ${qr.llave_nombre}: ${qr.llave_estado_texto}`, 'info', 3000);
+            showToast(` Llave ${qr.llave_nombre}: ${qr.llave_estado_texto}`, 'info', 3000);
         }
        
         // Actualizar tiempo de expiración
@@ -735,7 +725,7 @@ function showToast(message, type = 'info', duration = 3000) {
 }
 
 
-/* Efectos de desaparición de tarjetas expiradas */
+/* Efectos de desaparicin de tarjetas expiradas */
 @keyframes desaparicion-card {
     from {
         opacity: 1;

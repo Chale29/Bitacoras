@@ -84,21 +84,13 @@
                         <i class="bi bi-person"></i> {{ $profesor->usuario->name }}
                     </div>
                 @endif
-                <!-- Botón manual para debug -->
-                <button id="btn-actualizar-qrs" class="btn btn-outline-secondary btn-sm" title="Actualizar QRs manualmente">
-                    <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-md-inline">Debug QRs</span>
-                </button>
-                <!-- Botón para escanear QR -->
-                <a href="{{ route('profesor-llave.scanner') }}" class="btn btn-primary">
-                    <i class="bi bi-camera"></i> <span class="d-none d-sm-inline">Escanear QR</span>
-                </a>
             </div>
         </div>
 
 
         @if(isset($error))
             <div class="alert alert-warning">
-                <h4><i class="bi bi-exclamation-triangle"></i> Atención</h4>
+                <h4><i class="bi bi-exclamation-triangle"></i> Atencin</h4>
                 <p>{{ $error }}</p>
             </div>
         @endif
@@ -132,7 +124,7 @@
                                             data-llave-id="{{ $item->llave_id }}"
                                             data-recinto-nombre="{{ $item->recinto_nombre }}"
                                             data-llave-nombre="{{ $item->llave_nombre }}">
-                                        <i class="bi bi-qr-code"></i> <span class="d-none d-sm-inline">Generar </span>QR
+                                       <span>Generar solicitud</span>
                                     </button>
                                 </div>
                             </div>
@@ -155,7 +147,7 @@
         <!-- QRs Temporales Activos -->
         @if(!isset($error) && $qrsTemporales->count() > 0)
             <div class="mt-5">
-                <h4><i class="bi bi-clock-history"></i> QRs Temporales Activos</h4>
+                <h4><i class="bi bi-clock-history"></i> Llaves activas </h4>
                 <div class="row g-3" id="qrs-container">
                     @foreach($qrsTemporales as $qr)
                         <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
@@ -190,7 +182,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="qrModalLabel">
-                    <i class="bi bi-qr-code"></i> Código QR Generado
+                    <i class="bi bi-qr-code"></i> Solicitud generada
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -212,7 +204,7 @@
                 </div>
                
                 <div class="mt-3">
-                    <small class="text-muted">El código QR expira en 30 minutos</small>
+                    <small class="text-muted">La solicitud expira en 30 minutos</small>
                 </div>
             </div>
         </div>
@@ -321,7 +313,7 @@ $(document).ready(function() {
     }
    
     function updateQRsRealTime() {
-        console.log('🔄 Actualizando QRs del profesor...');
+        console.log(' Actualizando QRs del profesor...');
        
         $.ajax({
             url: '{{ route("profesor-llave.qrs-realtime") }}' + '?t=' + Date.now(),
@@ -336,7 +328,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.status === 'success') {
                     console.log('✅ QRs actualizados:', response.total);
-                    console.log('📋 Debug info:', response.debug);
+                    console.log(' Debug info:', response.debug);
                     console.log('📊 QRs data:', response.qrs);
                    
                     // Si no hay QRs activos, ocultar la sección
@@ -347,7 +339,7 @@ $(document).ready(function() {
                         // Detener polling si no hay QRs
                         if (pollingInterval) {
                             clearInterval(pollingInterval);
-                            console.log('⏹️ Polling detenido - no hay QRs activos');
+                            console.log('⏹ Polling detenido - no hay QRs activos');
                         }
                     } else {
                         // Mostrar la sección si estaba oculta
@@ -421,7 +413,7 @@ $(document).ready(function() {
    
     // Botón manual para debug
     $('#btn-actualizar-qrs').on('click', function() {
-        console.log('🔧 Actualización manual de QRs...');
+        console.log(' Actualización manual de QRs...');
         $(this).find('i').addClass('spin');
         updateQRsRealTime();
        

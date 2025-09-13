@@ -79,33 +79,61 @@ class StoreHorarioRequest extends FormRequest
         $leccionesSeleccionadas = \App\Models\Leccion::whereIn('id', $this->lecciones)
             ->get()
             ->sortBy(function($leccion) {
-                return [
-                    Carbon::parse($leccion->hora_inicio . ' ' . $leccion->hora_inicio_periodo)->timestamp,
-                    Carbon::parse($leccion->hora_final . ' ' . $leccion->hora_final_periodo)->timestamp
-                ];
+                // Usar la misma normalización que en comparaciones para AM/PM
+                $inicio = $this->normalizarHora($leccion->hora_inicio, $leccion->hora_inicio_periodo ?? null);
+                $fin    = $this->normalizarHora($leccion->hora_final,  $leccion->hora_final_periodo ?? null);
+                return [$inicio->timestamp, $fin->timestamp];
             })
             ->values();
 
         $this->validateConsecutiveLecciones($leccionesSeleccionadas, $validator);
 
-            // PRIORIDAD 7: Validar que no exista un horario duplicado para el mismo profesor, recinto y fecha/día (menos restrictivo)
+            // PRIORIDAD 7: Validar duplicados / solapamientos dentro del MISMO recinto y mismo profesor (permitiendo bloques separados no solapados)
             $query = Horario::where('user_id', $this->user_id)
                 ->where('idRecinto', $this->idRecinto)
                 ->where('condicion', 1);
 
             if ($this->tipoHorario === 'fijo') {
-                $query->where('dia', $this->dia)
-                      ->where('tipoHorario', 1);
+                $query->where('dia', $this->dia)->where('tipoHorario', 1);
             } else {
-                // Para horarios temporales, verificar contra la fecha específica
-                $query->where('fecha', $this->fecha)
-                      ->where('tipoHorario', 0);
+                $query->where('fecha', $this->fecha)->where('tipoHorario', 0);
             }
 
-            if ($query->exists()) {
-                $tipo = $this->tipoHorario === 'fijo' ? 'día' : 'fecha';
-                $valor = $this->tipoHorario === 'fijo' ? $this->dia : $this->fecha;
-                $validator->errors()->add('general', "Ya existe un horario para este profesor en este recinto para el {$tipo}: {$valor}");
+            $candidatos = $query->with('leccion')->get();
+            if ($candidatos->isNotEmpty()) {
+                $leccionesNuevas = \App\Models\Leccion::whereIn('id', $this->lecciones)->get();
+                $idsNuevosOrdenados = collect($this->lecciones)->sort()->values()->all();
+
+                $conflicto = null; // ['existente'=>leccionExist, 'nueva'=>leccionNueva]
+                foreach ($candidatos as $cand) {
+                    $idsCand = $cand->leccion->pluck('id')->sort()->values()->all();
+                    // Duplicado exacto (mismos bloques)
+                    if ($idsCand === $idsNuevosOrdenados) {
+                        $tipo = $this->tipoHorario === 'fijo' ? 'día' : 'fecha';
+                        $valor = $this->tipoHorario === 'fijo' ? $this->dia : $this->fecha;
+                        $validator->errors()->add('lecciones', "Horario duplicado: ya existe este mismo conjunto de lecciones en este recinto para el {$tipo} {$valor}.");
+                        return; // detener en duplicado
+                    }
+                    // Buscar primer solapamiento horario entre cualquier bloque de este horario existente y el nuevo
+                    foreach ($cand->leccion as $leExist) {
+                        foreach ($leccionesNuevas as $leNueva) {
+                            if ($this->hayConflictoHorario($leExist, $leNueva)) {
+                                $conflicto = ['existente' => $leExist, 'nueva' => $leNueva];
+                                break 3; // salir de los tres niveles
+                            }
+                        }
+                    }
+                }
+
+                if ($conflicto) {
+                    $tipo = $this->tipoHorario === 'fijo' ? 'día' : 'fecha';
+                    $valor = $this->tipoHorario === 'fijo' ? $this->dia : $this->fecha;
+                    $validator->errors()->add('lecciones',
+                        "Conflicto interno: ya tienes otro horario en este recinto para el {$tipo} {$valor} en " .
+                        $this->formatearRango($conflicto['existente']) . " que se superpone con " . $this->formatearRango($conflicto['nueva']) . "."
+                    );
+                    return;
+                }
             }
         });
     }
@@ -178,8 +206,10 @@ class StoreHorarioRequest extends FormRequest
                     if ($this->hayConflictoHorario($leccionExistente, $leccionNueva)) {
                         $recintoExistente = $horarioExistente->recinto->nombre ?? 'Recinto desconocido';
                         $tipoExistente = $horarioExistente->tipoHorario == 1 ? 'fijo' : 'temporal';
+                        $rangoExist = $this->formatearRango($leccionExistente);
+                        $rangoNuevo = $this->formatearRango($leccionNueva);
                         $validator->errors()->add('lecciones', 
-                            "Conflicto de horario: El profesor ya tiene clase en {$recintoExistente} ({$tipoExistente}) de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                            "Conflicto de horario: El profesor ya tiene clase en {$recintoExistente} ({$tipoExistente}) en {$rangoExist}, que coincide con la lección {$rangoNuevo}."
                         );
                         return; // Salir después del primer conflicto encontrado
                     }
@@ -193,13 +223,64 @@ class StoreHorarioRequest extends FormRequest
      */
     private function hayConflictoHorario($leccion1, $leccion2)
     {
-        $inicio1 = strtotime($leccion1->hora_inicio);
-        $fin1 = strtotime($leccion1->hora_final);
-        $inicio2 = strtotime($leccion2->hora_inicio);
-        $fin2 = strtotime($leccion2->hora_final);
+        // Normalizamos considerando campos *_periodo (AM/PM) si existen
+        $inicio1 = $this->normalizarHora($leccion1->hora_inicio, $leccion1->hora_inicio_periodo ?? null);
+        $fin1    = $this->normalizarHora($leccion1->hora_final,  $leccion1->hora_final_periodo ?? null);
+        $inicio2 = $this->normalizarHora($leccion2->hora_inicio, $leccion2->hora_inicio_periodo ?? null);
+        $fin2    = $this->normalizarHora($leccion2->hora_final,  $leccion2->hora_final_periodo ?? null);
 
-        // Hay conflicto si los horarios coinciden
+        // Si alguna lección aparenta terminar antes o igual de cuando inicia (posible cruce de medianoche) sumar un día al fin
+        if ($fin1->lessThanOrEqualTo($inicio1)) {
+            $fin1 = $fin1->copy()->addDay();
+        }
+        if ($fin2->lessThanOrEqualTo($inicio2)) {
+            $fin2 = $fin2->copy()->addDay();
+        }
+
         return ($inicio1 < $fin2) && ($fin1 > $inicio2);
+    }
+
+    /**
+     * Convierte una hora + periodo (AM/PM) a objeto Carbon consistente.
+     * Acepta formatos 12h con periodo o 24h sin periodo.
+     */
+    private function normalizarHora(string $hora, ?string $periodo): Carbon
+    {
+        $hora = trim($hora);
+        if ($periodo) {
+            $periodo = strtoupper(trim($periodo)); // AM / PM
+            // Intentar primero formato estándar h:i A
+            try {
+                return Carbon::createFromFormat('h:i A', $hora . ' ' . $periodo);
+            } catch (\Exception $e) {}
+            // Intentar con segundos si existieran
+            try {
+                return Carbon::createFromFormat('h:i:s A', $hora . ' ' . $periodo);
+            } catch (\Exception $e) {}
+        }
+        // Fallback: Carbon parse (detecta 24h o 12h si viene con AM/PM ya incluido)
+        try {
+            return Carbon::parse($hora . ($periodo ? (' ' . $periodo) : ''));
+        } catch (\Exception $e) {
+            // Último recurso: medianoche
+            return Carbon::parse('00:00');
+        }
+    }
+
+    /**
+     * Devuelve un string legible del rango horario usando AM/PM si existen los campos.
+     */
+    private function formatearRango($leccion): string
+    {
+        $ini = trim($leccion->hora_inicio);
+        $fin = trim($leccion->hora_final);
+        if (property_exists($leccion, 'hora_inicio_periodo') && $leccion->hora_inicio_periodo) {
+            $ini .= ' ' . strtoupper($leccion->hora_inicio_periodo);
+        }
+        if (property_exists($leccion, 'hora_final_periodo') && $leccion->hora_final_periodo) {
+            $fin .= ' ' . strtoupper($leccion->hora_final_periodo);
+        }
+        return $ini . ' - ' . $fin;
     }
 
     /**
@@ -268,8 +349,10 @@ class StoreHorarioRequest extends FormRequest
                     if ($this->hayConflictoHorario($leccionExistente, $leccionNueva)) {
                         $profesorExistente = $horarioExistente->profesor->name ?? 'Profesor desconocido';
                         $tipoExistente = $horarioExistente->tipoHorario == 1 ? 'fijo' : 'temporal';
+                        $rangoExist = $this->formatearRango($leccionExistente);
+                        $rangoNuevo = $this->formatearRango($leccionNueva);
                         $validator->errors()->add('lecciones', 
-                            "Conflicto en el recinto: El profesor {$profesorExistente} ya tiene clase ({$tipoExistente}) en este recinto de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                            "Conflicto en el recinto: El profesor {$profesorExistente} ya tiene clase ({$tipoExistente}) en este recinto en {$rangoExist}, que coincide con {$rangoNuevo}."
                         );
                         return; // Salir después del primer conflicto encontrado
                     }
@@ -374,7 +457,7 @@ class StoreHorarioRequest extends FormRequest
                         $tipoNuevo = $this->tipoHorario === 'fijo' ? 'fijo' : 'temporal';
                         
                         $validator->errors()->add('lecciones', 
-                            "Ya tienes asignada la sección {$seccionExistente} de {$subareaExistente} en el recinto {$recintoExistente} ({$tipoExistente}) de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección {$tipoNuevo} de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                            "Ya tienes asignada la sección {$seccionExistente} de {$subareaExistente} en el recinto {$recintoExistente} ({$tipoExistente}) en " . $this->formatearRango($leccionExistente) . ", que coincide con la lección {$tipoNuevo} " . $this->formatearRango($leccionNueva) . "."
                         );
                         return; // Salir después del primer conflicto encontrado
                     }
@@ -390,26 +473,26 @@ class StoreHorarioRequest extends FormRequest
     {
         // Recorremos todas las lecciones en orden
         for ($i = 0; $i < count($lecciones) - 1; $i++) {
-            $leccionActual = $lecciones[$i];
+            $leccionActual    = $lecciones[$i];
             $leccionSiguiente = $lecciones[$i + 1];
 
-            // Convertimos a objetos Carbon para comparar
-            $horaFinal = Carbon::parse($leccionActual->hora_final);
-            $horaInicioSiguiente = Carbon::parse($leccionSiguiente->hora_inicio);
+            $horaFinalActual = $this->normalizarHora($leccionActual->hora_final, $leccionActual->hora_final_periodo ?? null);
+            $horaInicioSig   = $this->normalizarHora($leccionSiguiente->hora_inicio, $leccionSiguiente->hora_inicio_periodo ?? null);
 
-            // Calculamos diferencia en minutos
-            $diferencia = $horaFinal->diffInMinutes($horaInicioSiguiente, false); 
-            // con `false` obtenemos diferencia con signo
+            // Ajuste defensivo si aparenta retroceder (p.ej. cruce de medianoche real) y la diferencia es grande
+            if ($horaInicioSig->lessThan($horaFinalActual) && $horaFinalActual->diffInHours($horaInicioSig) > 6) {
+                $horaInicioSig = $horaInicioSig->copy()->addDay();
+            }
 
-            // Validamos: debe empezar después y con máximo 20 min de diferencia
+            $diferencia = $horaFinalActual->diffInMinutes($horaInicioSig, false);
+
             if ($diferencia < 0 || $diferencia > 20) {
-                $validator->errors()->add('lecciones', 
-                    "Las lecciones seleccionadas deben ser consecutivas o con una diferencia máxima de 20 minutos.\n" .
-                    "La lección de {$leccionActual->hora_inicio} a {$leccionActual->hora_final} " .
-                    "no es consecutiva con la lección de {$leccionSiguiente->hora_inicio} " .
-                    "a {$leccionSiguiente->hora_final}."
+                $validator->errors()->add('lecciones',
+                    "Las lecciones deben ser consecutivas (máximo 20 minutos de separación). " .
+                    "Bloque {$leccionActual->hora_inicio} " . ($leccionActual->hora_inicio_periodo ?? '') . " - {$leccionActual->hora_final} " . ($leccionActual->hora_final_periodo ?? '') .
+                    " no es consecutivo con {$leccionSiguiente->hora_inicio} " . ($leccionSiguiente->hora_inicio_periodo ?? '') . " - {$leccionSiguiente->hora_final} " . ($leccionSiguiente->hora_final_periodo ?? '') . "."
                 );
-                return; // detenemos en el primer error
+                return; // detener en primer error
             }
         }
     }
@@ -503,12 +586,12 @@ class StoreHorarioRequest extends FormRequest
                         if ($esMismoProfesor) {
                             // Mismo profesor con conflicto de horarios
                             $validator->errors()->add('lecciones', 
-                                "Ya tienes asignada la sección {$seccionExistente} de {$subareaExistente} ({$tipoExistente}) de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                                "Ya tienes asignada la sección {$seccionExistente} de {$subareaExistente} ({$tipoExistente}) en " . $this->formatearRango($leccionExistente) . ", que coincide con la lección " . $this->formatearRango($leccionNueva) . "."
                             );
                         } else {
                             // Diferentes profesores con conflicto de horarios
                             $validator->errors()->add('lecciones', 
-                                "Conflicto de sección: La sección {$seccionExistente} de {$subareaExistente} ya está asignada al profesor {$profesorExistente} ({$tipoExistente}) de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                                "Conflicto de sección: La sección {$seccionExistente} de {$subareaExistente} ya está asignada al profesor {$profesorExistente} ({$tipoExistente}) en " . $this->formatearRango($leccionExistente) . ", que coincide con " . $this->formatearRango($leccionNueva) . "."
                             );
                         }
                         return; // Salir después del primer conflicto encontrado
@@ -590,7 +673,7 @@ class StoreHorarioRequest extends FormRequest
                         $tipoNuevo = $this->tipoHorario === 'fijo' ? 'fijo' : 'temporal';
                         
                         $validator->errors()->add('lecciones', 
-                            "Conflicto de horario: Ya tienes un horario {$tipoExistente} en {$recintoExistente} de {$leccionExistente->hora_inicio} a {$leccionExistente->hora_final}, que coincide con la lección {$tipoNuevo} de {$leccionNueva->hora_inicio} a {$leccionNueva->hora_final}."
+                            "Conflicto de horario: Ya tienes un horario {$tipoExistente} en {$recintoExistente} en " . $this->formatearRango($leccionExistente) . ", que coincide con la lección {$tipoNuevo} " . $this->formatearRango($leccionNueva) . "."
                         );
                         return; // Salir después del primer conflicto encontrado
                     }

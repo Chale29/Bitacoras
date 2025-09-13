@@ -112,8 +112,8 @@
                     <label for="observacionInput"><i class="bi bi-chat-text me-2"></i>Observaciones</label>
                   </div>
                 </div>
-                <div class="col-md-4">
-                  <div class="form-floating">
+                <div class="col-md-12">
+                  <div class="form-floating mb-3">
                     <select name="prioridad" class="form-select" id="prioridadSelect" required>
                       <option value="">Seleccione una prioridad</option>
                       <option value="alta" class="text-danger">Alta</option>
@@ -123,7 +123,7 @@
                     </select>
                     <label for="prioridadSelect"><i class="bi bi-exclamation-circle me-2"></i>Prioridad</label>
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-md-12">
                     <div class="form-floating">
                       <select name="id_institucion" class="form-select" id="prioridadSelect" required>
                         <option value="">Seleccione una institución</option>
@@ -172,7 +172,7 @@
     </div>
   </div>
 
-  <!-- Modal de Confirmación de Envío -->
+  <!-- Modal de Confirmación de Envo -->
   <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content custom-modal">

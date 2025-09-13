@@ -8,7 +8,7 @@
 <div class="scanner-wrapper">
     <div class="scanner-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Escáner QR</h2>
+            <h2 class="mb-0">Realizar solicitud</h2>
             <a href="{{ route('profesor-llave.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Volver
             </a>
@@ -118,7 +118,7 @@
 
 
 @push('scripts')
-<!-- Librería Html5-QRCode para escaneo QR -->
+<!-- Librera Html5-QRCode para escaneo QR -->
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
 $(document).ready(function() {
@@ -143,7 +143,7 @@ $(document).ready(function() {
                 .removeClass().addClass('alert alert-info');
 
 
-            // Solicitar permisos de cámara
+            // Solicitar permisos de cmara
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'environment',
@@ -328,7 +328,7 @@ $(document).ready(function() {
                 $('#scanned-code').text(decodedText);
                 $('#scan-result').show();
                
-                // Procesar QR automáticamente después de 500ms
+                // Procesar QR automáticamente despus de 500ms
                 setTimeout(() => {
                     processQRCode(decodedText);
                 }, 500);
@@ -388,7 +388,7 @@ $(document).ready(function() {
             } else if (error.name === 'NotReadableError') {
                 errorMessage = 'La cámara está ocupada por otra aplicación. Ciérrala e intenta de nuevo.';
             } else if (error.name === 'OverconstrainedError') {
-                errorMessage = 'La configuración de la cámara no es compatible. Intenta con otra cámara.';
+                errorMessage = 'La configuracin de la cámara no es compatible. Intenta con otra cámara.';
             } else if (error.message) {
                 errorMessage = error.message;
             }
@@ -577,8 +577,8 @@ $(document).ready(function() {
                 errorMessage = 'No se encontró cámara en tu dispositivo';
                 solutions = [
                     'Conecta una cámara web si usas una computadora',
-                    'Verifica que tu cámara no esté dañada',
-                    'Intenta desde un dispositivo móvil'
+                    'Verifica que tu cámara no est dañada',
+                    'Intenta desde un dispositivo mvil'
                 ];
             } else if (error.name === 'NotReadableError') {
                 errorMessage = 'Cámara ocupada por otra aplicación';

@@ -1,647 +1,82 @@
-@extends('Template-soporte')
+<!DOCTYPE html>
+<html lang="es">
 
-@section('title', 'Sistema de Eventos')
-
-@section('content')
 <head>
-    <link rel="stylesheet" href="{{ asset('Css/reporte.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@yield('title', 'Sistema de Bitácoras')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('Css/Sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset('Css/inicio.css') }}">
+    
+    <link rel="stylesheet" href="{{ asset('Css/delete-alerts.css') }}">
+    @stack('styles')
 </head>
 
-<div class="wrapper">
-    <div class="main-content">
-        <!-- Loading spinner -->
-        <div id="loadingSpinner" class="text-center d-none">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
+<body>
+    <div id="sidebar-navbar">
+        <div class="topbar mt-0">
+            <button class="hamburger d-md-none" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="left-section d-none d-md-flex">
+                <img src="https://academiashhc.com/wp-content/uploads/2022/09/AcademiasB.png" alt="Logo Academias" class="right-logo d-none d-md-block" />
+
+                <div class="separator"></div>
+                <img src="https://covao.ed.cr/wp-content/uploads/2025/01/Especialidades-logos-05-e1736905518920.webp" alt="Logo COVAO Nocturno" class="logo" />
+               
             </div>
+            <div class="title">SIREBI</div>
+            <img src="https://covao.ed.cr/wp-content/uploads/2024/12/image-removebg-preview-3.png" alt="Logo COVAO" class="logo" />
+           
         </div>
 
-        <!-- Filtros de Reportes -->
-        <div class="filtros-container mb-4">
-            {{-- Filtros --}}
-            <div class="filtros-top mb-3">
-                <div class="dropdown">
-                    <button class="btn btn-outline-primary dropdown-toggle" 
-                            type="button" 
-                            id="filtrosDropdown" 
-                            data-bs-toggle="dropdown" 
-                            aria-expanded="false">
-                        <i class="bi bi-funnel me-2"></i>
-                        Filtros
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filtrosDropdown" style="min-width: 250px;">
-                        <!-- DEBUG: {{ $recintos ? $recintos->count() : 'null' }} recintos encontrados -->
-                        <li class="filtro-header">Filtrar por Recinto</li>
-                        <li>
-                            <a class="dropdown-item filtro-item" href="#" data-filtro="" data-tipo="recinto">
-                                <i class="bi bi-building me-2"></i>
-                                Todos los recintos
-                            </a>
-                        </li>
-                        @if(isset($recintos) && $recintos->count() > 0)
-                            @foreach($recintos as $recinto)
-                            <li>
-                                <a class="dropdown-item filtro-item" href="#" data-filtro="{{ $recinto->id }}" data-tipo="recinto">
-                                    <i class="bi bi-geo-alt-fill me-2"></i>
-                                    {{ $recinto->nombre }}
-                                </a>
-                            </li>
-                            @endforeach
-                        @else
-                            <li>
-                                <span class="dropdown-item text-muted">
-                                    <i class="bi bi-exclamation-triangle me-2"></i>
-                                    No hay recintos disponibles
-                                </span>
-                            </li>
-                        @endif
-                        <li><hr class="dropdown-divider"></li>
-                        <li class="filtro-header">Ordenar por</li>
-                        <li>
-                            <a class="dropdown-item filtro-item" href="#" data-filtro="desc" data-tipo="orden">
-                                <i class="bi bi-sort-down me-2"></i>
-                                Más recientes
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item filtro-item" href="#" data-filtro="asc" data-tipo="orden">
-                                <i class="bi bi-sort-up me-2"></i>
-                                Más antiguos
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <div class="yellow-line"></div>
+        <div class="sidebar-separator d-none d-md-block"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <img src="https://covao.ed.cr/wp-content/uploads/2024/12/image-removebg-preview-3.png" />
             </div>
-            
-            <!-- Barra de búsqueda extensa -->
-            <div class="search-section mb-4">
-                <div class="search-bar d-flex align-items-center">
-                    <form id="busquedaForm" method="GET" action="{{ route('evento.index_soporte') }}" class="w-100 position-relative">
-                        <input type="hidden" name="recinto" value="{{ request('recinto') }}">
-                        <input type="hidden" name="orden" value="{{ request('orden') }}">
-                        <span class="search-icon">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" 
-                            class="form-control" 
-                            placeholder="Buscar reportes..." 
-                            name="busqueda"
-                            value="{{ request('busqueda') }}" 
-                            id="inputBusqueda" 
-                            autocomplete="off">
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Estadísticas -->
-            <div class="filtros-stats mt-2">
-                <small class="text-muted">
-                    Mostrando: <strong id="contadorReportes">{{ $eventos->count() }}</strong> reportes
-                    <span id="recintoActual"></span>
-                </small>
-            </div>
-        </div>
+            <a href="{{ route('Dashboard.indexSoporte') }}" class="sidebar-item">
+                <div class="icon-circle"><i class="bi bi-house-door-fill"></i></div>
+                <div class="label" data-bs-toggle="tooltip" title="Inicio">Inicio</div>
+            </a>
 
-        <!-- Tabla de eventos -->
-        <div id="tabla-reportes" class="tabla-contenedor shadow-sm rounded">
-            <!-- Encabezados -->
-            <div class="header-row text-white" style="background-color: #134496;">
-                <div class="col-docente">Docente</div>
-                <div class="col-recinto">Recinto</div>
-                <div class="col-fecha">Fecha</div>
-                <div class="col-hora">Hora</div>
-                <div class="col-prioridad">Prioridad</div>
-                <div class="col-estado">Estado</div>
-                <div class="col-detalles">Detalles</div>
-            </div>
+        
 
-            <!-- Contenedor para datos asíncronos -->
-            <div id="eventos-container">            
-                @include('Evento.partials.eventos-lista-soporte', ['eventos' => $eventos])
+            <a href="{{route('evento.index_soporte')}}" class="sidebar-item">
+                <div class="icon-circle"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>
+                <div class="label" data-bs-toggle="tooltip" title="Reportes">Mis reportes</div>
+            </a>
+
+
+            <div class="mt-auto mb-3" style="width:100%;">
+                <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                    @csrf
+                    <a href="#" onclick="this.closest('form').submit();return false;" class="sidebar-item" style="width:100%;">
+                        <div class="icon-circle"><i class="bi bi-box-arrow-right"></i></div>
+                        <div class="label" data-bs-toggle="tooltip" title="Salir">Salir</div>
+                    </a>
+                </form>
             </div>
         </div>
     </div>
-</div>
 
-@endsection
+    <div class="wrapper">
+        <div class="main-content p-4">
+            @yield('content')
+        </div>
+    </div>
 
-@push('styles')
-<style>
-.hover-effect {
-    transition: all 0.3s ease;
-}
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;"></div>
 
-.hover-effect:hover {
-    background-color: rgba(0,0,0,0.02);
-    transform: translateY(-1px);
-}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('JS/Sidebar.js') }}"></script>
+    <script src="{{ asset('JS/indexBitacoras.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    @stack('scripts')
+</body>
 
-.badge {
-    font-weight: 500;
-    padding: 0.5em 0.8em;
-}
-
-.tabla-contenedor {
-    border: 1px solid rgba(0,0,0,0.1);
-    background: white;
-}
-
-.header-row {
-    font-weight: 500;
-}
-
-.record-row {
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.form-control, .form-select, .input-group-text {
-    border-radius: 20px;
-}
-
-.input-group .form-select {
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-}
-
-/* Update color variables */
-:root {
-    --primary-blue: #134496;
-}
-
-.bg-primary {
-    background-color: var(--primary-blue) !important;
-}
-
-.btn-primary {
-    background-color: var(--primary-blue) !important;
-    border-color: var(--primary-blue) !important;
-}
-
-/* Modal styling updates */
-.modal-contenido {
-    background: none;
-    box-shadow: none;
-}
-
-.modal-cuerpo {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-}
-
-.swal2-popup {
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-.swal2-content {
-    background: white;
-    border-radius: 8px;
-    padding: 20px !important;
-}
-
-/* Update spinner color */
-.spinner-border.text-primary {
-    color: var(--primary-blue) !important;
-}
-
-/* Añadir transición suave para actualizaciones */
-#eventos-container {
-    transition: opacity 0.15s ease-in-out;
-}
-
-/* Add to your styles section */
-.form-select:not([disabled]) {
-    background-color: white;
-    border: 1px solid #134496;
-    cursor: pointer;
-}
-
-.form-select:not([disabled]):focus {
-    border-color: #134496;
-    box-shadow: 0 0 0 0.25rem rgba(19, 68, 150, 0.25);
-}
-
-@media (max-width: 768px) {
-    .record-row {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-        padding: 1rem;
-    }
-
-    .record-row > div {
-        padding: 0.5rem;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .record-row > div:last-child {
-        border-bottom: none;
-    }
-
-    [data-label]:before {
-        content: attr(data-label);
-        font-weight: 600;
-        display: inline-block;
-        width: 120px;
-    }
-}
-</style>
-@endpush
-
-@push('scripts')
-<!-- ================= SCRIPTS PARA MODAL Y AJAX ================= -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-const loadingSpinner = document.getElementById('loadingSpinner');
-const eventosContainer = document.getElementById('eventos-container');
-let currentTimestamp = '{{ $eventos->max('updated_at') }}';
-
-async function cargarEventos() {
-    try {
-        const response = await fetch(`{{ route('eventos.load') }}?timestamp=${currentTimestamp}`, {
-            headers: { 
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) throw new Error('Error en la red');
-
-        const data = await response.json();
-        
-        if (data.success && data.hasNewData) {
-            loadingSpinner.classList.remove('d-none');
-            eventosContainer.style.opacity = '0.6';
-            
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = data.html;
-            
-            const newEventosContainer = tempDiv.querySelector('#eventos-container');
-            if (newEventosContainer) {
-                eventosContainer.innerHTML = newEventosContainer.innerHTML;
-                currentTimestamp = data.timestamp;
-            }
-            
-            eventosContainer.style.opacity = '1';
-            loadingSpinner.classList.add('d-none');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        loadingSpinner.classList.add('d-none');
-    }
-}
-
-// Comprobar cambios cada 3 segundos
-const intervalId = setInterval(cargarEventos, 3000);
-
-// Función para abrir modal
-// Función para abrir modal
-    function abrirModal(id) {
-        // Buscar el evento específico en los datos
-        fetch(`/evento/${id}/details`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(evento => {
-            console.log('Datos del evento cargados:', evento);
-            
-            const estadoOptions = {
-                'en_espera': 'En espera',
-                'en_proceso': 'En proceso', 
-                'completado': 'Completado'
-            };
-            
-            const modalHTML = `
-                <div class="modal-contenido">
-                    <div class="modal-encabezado">
-                        <span class="icono-atras" onclick="Swal.close()">
-                            <i>
-                                <img width="40" height="40" src="https://img.icons8.com/external-solid-adri-ansyah/64/FAB005/external-ui-basic-ui-solid-adri-ansyah-26.png" alt="icono volver"/>
-                            </i>
-                        </span>
-                        <h1 class="titulo">Detalles</h1>
-                    </div>
-
-                    <div class="modal-cuerpo">
-                        <div class="row">
-                            <div class="col">
-                                <label>Docente:</label>
-                                <input type="text" value="${evento.docente}" disabled>
-
-                                <label>SubÁrea:</label>
-                                <input type="text" value="${evento.subarea}" disabled>
-
-                                <label>Sección:</label>
-                                <input type="text" value="${evento.seccion}" disabled>
-                                
-
-                                <label>Especialidad:</label>
-                                <input type="text" value="${evento.especialidad}" disabled>
-                            </div>
-
-                            <div class="col">
-                                <label>Fecha:</label>
-                                <input type="text" value="${evento.fecha}" disabled>
-                                
-                                <label>Hora:</label>
-                                <input type="text" value="${evento.hora}" disabled>
-                                
-                                <label>Recinto:</label>
-                                <input type="text" value="${evento.recinto}" disabled>
-
-                                <label>Prioridad:</label>
-                                <input type="text" value="${evento.prioridad}" disabled>
-
-                                <label>Estado:</label>
-                                <select class="form-select mb-3" id="estado-${id}">
-                                    ${Object.entries(estadoOptions).map(([key, value]) => 
-                                        `<option value="${key}" ${evento.estado === key ? 'selected' : ''}>${value}</option>`
-                                    ).join('')}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="observaciones mt-3">
-                            <label>Observaciones:</label>
-                            <textarea disabled>${evento.observaciones || ''}</textarea>
-                        </div>
-
-                        <div class="mt-4 d-flex justify-content-center">
-                            <button type="button" class="btn btn-primary px-4 py-2" style="background-color:#134496; min-width:150px;" onclick="guardarEstado(${id})">
-                                <i class="bi bi-save me-2"></i>Guardar cambios
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            Swal.fire({
-                html: modalHTML,
-                width: '80%',
-                showConfirmButton: false,
-                showCloseButton: false,
-                customClass: {
-                    container: 'modal-detalles-container',
-                    popup: 'bg-transparent',
-                    content: 'bg-transparent'
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error al cargar detalles:', error);
-            Swal.fire('Error', 'No se pudieron cargar los detalles del evento', 'error');
-        });
-    }
-
-    // También actualiza la función guardarEstado para mejor manejo de errores:
-    async function guardarEstado(id) {
-        const selectElement = document.getElementById(`estado-${id}`);
-        
-        if (!selectElement) {
-            console.error('No se encontró el elemento select para el estado');
-            Swal.fire('Error', 'No se pudo encontrar el campo de estado', 'error');
-            return;
-        }
-        
-        const nuevoEstado = selectElement.value;
-        
-        console.log('Guardando estado:', { id, nuevoEstado });
-        
-        try {
-            const response = await fetch(`/evento/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ estado: nuevoEstado })
-            });
-            
-            console.log('Response status:', response.status);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log('Respuesta backend:', data);
-            
-            if (data.success) {
-                Swal.fire({
-                    title: '¡Guardado!',
-                    text: 'El estado del evento se actualizó correctamente.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    // Cerrar el modal y recargar los datos
-                    Swal.close();
-                    // Recargar la lista de eventos sin recargar toda la página
-                    cargarEventos();
-                });
-            } else {
-                throw new Error(data.message || 'No se pudo guardar el estado.');
-            }
-        } catch (error) {
-            console.error('Error en fetch:', error);
-            Swal.fire('Error', error.message || 'Error al procesar la solicitud', 'error');
-        }
-    }
-
-function cerrarModal(id) {
-    Swal.close();
-}
-
-// Limpiar intervalo cuando se abandona la página
-window.addEventListener('beforeunload', () => {
-    clearInterval(intervalId);
-});
-
-async function guardarEstado(id) {
-    const nuevoEstado = document.getElementById(`estado-${id}`).value;
-    
-    try {
-        const response = await fetch(`/evento/${id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ estado: nuevoEstado })
-        });
-        if (!response.ok) throw new Error('No se pudo guardar el estado');
-        const data = await response.json();
-        console.log('Respuesta backend:', data); // <-- Depuración
-        if (data.success) {
-            Swal.fire({
-                title: '¡Guardado!',
-                text: 'El estado del evento se actualizó correctamente.',
-                icon: 'success',
-            }).then(() => {
-                window.location.reload(); // Recarga toda la página
-            });
-        } else {
-            Swal.fire('Error', data.message || 'No se pudo guardar el estado.', 'error');
-        }
-    } catch (error) {
-        console.log('Error en fetch:', error); // <-- Depuración
-        Swal.fire('Error', error.message, 'error');
-    }
-}
-
-// Variables para filtros
-let filtrosActivos = {
-    recinto: '{{ request("recinto") }}',
-    orden: '{{ request("orden", "desc") }}',
-    busqueda: '{{ request("busqueda") }}'
-};
-
-// Inicializar cuando el DOM y Bootstrap estén listos
-document.addEventListener('DOMContentLoaded', function() {
-    // Esperar a que Bootstrap esté disponible
-    const checkBootstrap = () => {
-        if (typeof bootstrap !== 'undefined') {
-            console.log('Bootstrap está disponible, inicializando filtros...');
-            initializeFilters();
-        } else {
-            console.log('Esperando a Bootstrap...');
-            setTimeout(checkBootstrap, 50);
-        }
-    };
-    checkBootstrap();
-});
-
-function initializeFilters() {
-    console.log('Inicializando filtros...');
-    
-    // Verificar que los elementos existen
-    const filtrosDropdown = document.getElementById('filtrosDropdown');
-    const inputBusqueda = document.getElementById('inputBusqueda');
-    const busquedaForm = document.getElementById('busquedaForm');
-    
-    console.log('Elementos encontrados:', {
-        filtrosDropdown: !!filtrosDropdown,
-        inputBusqueda: !!inputBusqueda,
-        busquedaForm: !!busquedaForm
-    });
-    
-    // Event listeners para filtros del dropdown
-    const filtroItems = document.querySelectorAll('.filtro-item');
-    console.log('Filtro items encontrados:', filtroItems.length);
-    
-    filtroItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Filtro clickeado:', this.getAttribute('data-filtro'), this.getAttribute('data-tipo'));
-            
-            const filtro = this.getAttribute('data-filtro');
-            const tipo = this.getAttribute('data-tipo');
-            
-            filtrosActivos[tipo] = filtro;
-            aplicarFiltros();
-        });
-    });
-    
-    // Event listener para búsqueda
-    if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', function() {
-            filtrosActivos.busqueda = this.value;
-            aplicarFiltros();
-        });
-    }
-    
-    // Event listener para el formulario de búsqueda
-    if (busquedaForm) {
-        busquedaForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            filtrosActivos.busqueda = document.getElementById('inputBusqueda').value;
-            aplicarFiltros();
-        });
-    }
-}
-
-function limpiarTodosFiltros() {
-    filtrosActivos = {
-        recinto: '',
-        orden: 'desc',
-        busqueda: ''
-    };
-    
-    document.getElementById('inputBusqueda').value = '';
-    aplicarFiltros();
-}
-
-function aplicarFiltros() {
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const eventosContainer = document.getElementById('eventos-container');
-    
-    // Mostrar spinner
-    loadingSpinner.classList.remove('d-none');
-    eventosContainer.style.opacity = '0.5';
-    
-    // Construir URL con parámetros
-    const params = new URLSearchParams();
-    if (filtrosActivos.recinto) params.append('recinto', filtrosActivos.recinto);
-    if (filtrosActivos.orden) params.append('orden', filtrosActivos.orden);
-    if (filtrosActivos.busqueda) params.append('busqueda', filtrosActivos.busqueda);
-    
-    // Hacer petición AJAX
-    fetch(`{{ route('evento.index_soporte') }}?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            eventosContainer.innerHTML = data.html;
-            updateStats();
-        }
-        loadingSpinner.classList.add('d-none');
-        eventosContainer.style.opacity = '1';
-    })
-    .catch(error => {
-        console.error('Error al filtrar:', error);
-        loadingSpinner.classList.add('d-none');
-        eventosContainer.style.opacity = '1';
-    });
-}
-
-function updateStats() {
-    const rows = document.querySelectorAll('.record-row').length;
-    document.getElementById('contadorReportes').textContent = rows;
-    
-    const recintoActual = document.getElementById('recintoActual');
-    let recintoText = '';
-    
-    if (filtrosActivos.recinto) {
-        // Obtener el nombre del recinto seleccionado del dropdown
-        const recintoElement = document.querySelector(`[data-filtro="${filtrosActivos.recinto}"][data-tipo="recinto"]`);
-        if (recintoElement) {
-            recintoText = ` filtrados por: ${recintoElement.textContent.trim()}`;
-        }
-    }
-    
-    recintoActual.textContent = recintoText;
-}
-</script>
-@endpush
+</html>

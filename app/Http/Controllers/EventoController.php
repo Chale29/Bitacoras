@@ -32,8 +32,6 @@ class EventoController extends Controller
             'horario.recinto.institucion'
         ]);
 
-        
-
         // Aplicar filtro por estado si se proporciona
         if ($request->has('estado') && $request->estado !== '') {
             $query->where('estado', $request->estado);
@@ -369,7 +367,7 @@ class EventoController extends Controller
 
     public function store(StoreEventoRequest $request)
     {
-        // Recibimos el id de lección y el id de horario seleccionados
+        // Recibimos el id de leccin y el id de horario seleccionados
         $idLeccion = $request->id_leccion;
         $idHorario = $request->id_horario;
         $leccion = \App\Models\Leccion::find($idLeccion);
@@ -393,7 +391,7 @@ class EventoController extends Controller
             $evento = new Evento();
             $bitacora = Bitacora::where('id_recinto', $horario->recinto->id)->first();
             if (!$bitacora) {
-                throw new Exception('No se encontró una bitácora para el recinto de este horario.');
+                throw new Exception('No se encontró una bitcora para el recinto de este horario.');
             }
             if ($bitacora->condicion == 0) {
                 return back()->withErrors(['error' => 'La bitácora seleccionada no está activa.']);
@@ -549,7 +547,7 @@ class EventoController extends Controller
 
             if (array_key_exists('observacion', $validated)) {
                 $evento->observacion = $validated['observacion'];
-                Log::info('Observación actualizada');
+                Log::info('Observacin actualizada');
             }
 
             // Guardar cambios

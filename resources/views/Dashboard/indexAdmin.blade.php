@@ -3,6 +3,7 @@
 @section('title', 'Sistema de Bitácoras')
 
 @section('content')
+    <link rel="stylesheet" href="{{ asset('Css/inicio.css') }}">
     {{-- Menu Lateral --}}
     <div id="sidebar-container"></div>
     <script type="module">

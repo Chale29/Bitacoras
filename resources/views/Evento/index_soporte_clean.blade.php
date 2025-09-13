@@ -289,7 +289,7 @@
     color: var(--primary-blue) !important;
 }
 
-/* Añadir transición suave para actualizaciones */
+/* Aadir transición suave para actualizaciones */
 #eventos-container {
     transition: opacity 0.15s ease-in-out;
 }
@@ -383,7 +383,7 @@ function abrirModal(id) {
     Swal.fire({
         html: document.getElementById('modalDetalles-' + id).innerHTML,
         width: '80%',
-        showConfirmButton: false, // 🚫 Oculta el botón "Confirmar"
+        showConfirmButton: false, //  Oculta el botón "Confirmar"
         showCloseButton: false,   // 🚫 Oculta el botón de cerrar (X), cámbialo a true si lo quieres
         customClass: {
             container: 'modal-detalles-container',

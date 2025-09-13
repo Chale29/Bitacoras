@@ -219,7 +219,7 @@
                                     <option value="Miércoles" {{ old('dia') == 'Miércoles' ? 'selected' : '' }}>Miércoles</option>
                                     <option value="Jueves" {{ old('dia') == 'Jueves' ? 'selected' : '' }}>Jueves</option>
                                     <option value="Viernes" {{ old('dia') == 'Viernes' ? 'selected' : '' }}>Viernes</option>
-                                    <option value="Sábado" {{ old('dia') == 'Sábado' ? 'selected' : '' }}>Sábado</option>
+                                    <option value="Sábado" {{ old('dia') == 'Sábado' ? 'selected' : '' }}>Sabado</option>
                                     <option value="Domingo" {{ old('dia') == 'Domingo' ? 'selected' : '' }}>Domingo</option>
                                 </select>
                             </div>
@@ -558,13 +558,11 @@
                                                     <button type="button" class="btn btn-outline-warning" id="btnNocturnoEditar{{ $horario->id }}">
                                                         Nocturno (5:50 PM - 9:55 PM)
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-success" id="btnTodosEditar{{ $horario->id }}">
-                                                        Todas las lecciones
-                                                    </button>
+                    
                                                 </div>
                                                 
                                                 <div class="border rounded-4 p-3 {{ $errors->has('lecciones') ? 'border-danger' : '' }}" style="max-height: 300px; overflow-y: auto;">
-                                                    {{-- Lecciones Académicas --}}
+                                                    {{-- Lecciones Acadmicas --}}
                                                     <div class="mb-3" id="leccionesAcademicasEditar{{ $horario->id }}">
                                                         <h6 class="text-primary mb-2">Lecciones Académicas</h6>
                                                         <div class="row">
@@ -585,13 +583,39 @@
                                                         </div>
                                                     </div>
 
-                                                    {{-- Lecciones Técnicas --}}
+                                                    {{-- Lecciones Tcnicas --}}
                                                     <div>
                                                         <h6 class="text-success mb-2">Lecciones Técnicas</h6>
                                                         <div class="row">
                                                             @foreach($lecciones as $leccion)
                                                                 @if(strtolower($leccion->tipoLeccion) == 'tecnica')
-                                                                    <div class="col-12 col-md-6 mb-2 leccion-item" data-modalidad="diurno">
+                                                                    @php
+                                                                        // Lógica más simple para determinar modalidad
+                                                                        $horaInicio = $leccion->hora_inicio;
+                                                                        $periodo = $leccion->hora_inicio_periodo ?? 'AM';
+                                                                        
+                                                                        list($hora, $minuto) = explode(':', $horaInicio);
+                                                                        $hora = (int)$hora;
+                                                                        $minuto = (int)$minuto;
+                                                                        
+                                                                        if ($periodo == 'AM') {
+                                                                            $modalidad = 'diurno';
+                                                                        } else { // PM
+                                                                            if ($hora == 12) {
+                                                                                $modalidad = 'diurno';
+                                                                            } elseif ($hora >= 1 && $hora <= 4) {
+                                                                                $modalidad = 'diurno';
+                                                                            } elseif ($hora == 4 && $minuto <= 20) {
+                                                                                $modalidad = 'diurno';
+                                                                            } elseif ($hora >= 6 || ($hora == 5 && $minuto >= 50)) {
+                                                                                $modalidad = 'nocturno';
+                                                                            } else {
+                                                                                $modalidad = 'diurno';
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    
+                                                                    <div class="col-12 col-md-6 mb-2 leccion-item" data-modalidad="{{ $modalidad }}">
                                                                         <div class="form-check">
                                                                             <input class="form-check-input" type="checkbox" name="lecciones[]" 
                                                                                 value="{{ $leccion->id }}" id="leccion_edit_{{ $horario->id }}_{{ $leccion->id }}"
@@ -604,7 +628,7 @@
                                                                 @endif
                                                             @endforeach
                                                         </div>
-                                                    </div>
+                                                   </div>
 
                                                     {{-- Botones para seleccionar/deseleccionar todos --}}
                                                     <div class="mt-3 d-flex gap-2 justify-content-center">
@@ -673,7 +697,7 @@
                                             </g>
                                         </g>
                                     </svg>
-                                    <p class="mb-0">Horario eliminado con éxito</p>
+                                    <p class="mb-0">Horario eliminado con xito</p>
                                 </div>
                             </div>
                         </div>
@@ -787,7 +811,7 @@
             window.location.href = '{{ route("horario.index") }}';
         });
     }
-    // Abrir modal automáticamente si hay errores de validación
+    // Abrir modal automticamente si hay errores de validación
     @if ($errors->any() && (old('_method') === null))
         // Si hay errores y no es una actualización (método PUT), abrir modal de creación
         const modalCrear = new bootstrap.Modal(document.getElementById('modalHorario'));
@@ -978,6 +1002,101 @@ document.addEventListener('DOMContentLoaded', function() {
     // Estado inicial: mostrar diurno por defecto
     filtrarLeccionesCrear('diurno');
 
-    // ... resto de tu JavaScript existente ...
+    // Funcionalidad de filtrado para modales de editar
+    @foreach($horarios as $horario)
+    (function() {
+        const btnDiurnoEditar{{ $horario->id }} = document.getElementById('btnDiurnoEditar{{ $horario->id }}');
+        const btnNocturnoEditar{{ $horario->id }} = document.getElementById('btnNocturnoEditar{{ $horario->id }}');
+
+        function filtrarLeccionesEditar{{ $horario->id }}(modalidad) {
+            const leccionItems = document.querySelectorAll('#modalEditarHorario{{ $horario->id }} .leccion-item');
+            const leccionesAcademicas = document.getElementById('leccionesAcademicasEditar{{ $horario->id }}');
+            
+            // Resetear estilos de botones
+            if (btnDiurnoEditar{{ $horario->id }}) btnDiurnoEditar{{ $horario->id }}.className = 'btn btn-outline-primary';
+            if (btnNocturnoEditar{{ $horario->id }}) btnNocturnoEditar{{ $horario->id }}.className = 'btn btn-outline-warning';
+            
+            if (modalidad === 'diurno') {
+                if (btnDiurnoEditar{{ $horario->id }}) btnDiurnoEditar{{ $horario->id }}.className = 'btn btn-primary';
+                
+                // Mostrar lecciones académicas (son diurnas)
+                if (leccionesAcademicas) leccionesAcademicas.style.display = 'block';
+                
+                // Filtrar lecciones técnicas
+                leccionItems.forEach(item => {
+                    if (item.dataset.modalidad === 'diurno') {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                        // NO desmarcar checkboxes que ya estaban seleccionados
+                    }
+                });
+                
+            } else if (modalidad === 'nocturno') {
+                if (btnNocturnoEditar{{ $horario->id }}) btnNocturnoEditar{{ $horario->id }}.className = 'btn btn-warning';
+                
+                // Ocultar lecciones académicas (no son nocturnas)
+                if (leccionesAcademicas) leccionesAcademicas.style.display = 'none';
+                
+                // Filtrar lecciones técnicas
+                leccionItems.forEach(item => {
+                    if (item.dataset.modalidad === 'nocturno') {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                        // NO desmarcar checkboxes que ya estaban seleccionados
+                    }
+                });
+            }
+        }
+
+        // Event listeners para los botones del modal editar
+        if (btnDiurnoEditar{{ $horario->id }}) {
+            btnDiurnoEditar{{ $horario->id }}.addEventListener('click', () => filtrarLeccionesEditar{{ $horario->id }}('diurno'));
+        }
+        if (btnNocturnoEditar{{ $horario->id }}) {
+            btnNocturnoEditar{{ $horario->id }}.addEventListener('click', () => filtrarLeccionesEditar{{ $horario->id }}('nocturno'));
+        }
+
+        // CAMBIO PRINCIPAL: Estado inicial basado en las lecciones del horario
+        document.getElementById('modalEditarHorario{{ $horario->id }}').addEventListener('shown.bs.modal', function() {
+            @php
+                // Detectar modalidad del horario actual
+                $esDiurno = false;
+                $esNocturno = false;
+                
+                foreach($horario->leccion as $leccionHorario) {
+                    if (strtolower($leccionHorario->tipoLeccion) == 'academica') {
+                        $esDiurno = true;
+                    } else {
+                        $horaInicio = $leccionHorario->hora_inicio;
+                        $periodo = $leccionHorario->hora_inicio_periodo ?? 'AM';
+                        
+                        list($hora, $minuto) = explode(':', $horaInicio);
+                        $hora = (int)$hora;
+                        $minuto = (int)$minuto;
+                        
+                        if ($periodo == 'AM') {
+                            $esDiurno = true;
+                        } else {
+                            if ($hora == 12 || ($hora >= 1 && $hora <= 4) || ($hora == 4 && $minuto <= 20)) {
+                                $esDiurno = true;
+                            } elseif ($hora >= 6 || ($hora == 5 && $minuto >= 50)) {
+                                $esNocturno = true;
+                            } else {
+                                $esDiurno = true;
+                            }
+                        }
+                    }
+                }
+                
+                $modalidadInicial = $esNocturno && !$esDiurno ? 'nocturno' : 'diurno';
+            @endphp
+            
+            filtrarLeccionesEditar{{ $horario->id }}('{{ $modalidadInicial }}');
+        });
+    })();
+    @endforeach
+    
 });
 </script>

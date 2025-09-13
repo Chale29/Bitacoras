@@ -82,7 +82,7 @@ class LeccioneSeeder extends Seeder
             ],
             [
                 'tipoLeccion' => 'Academica',
-                'leccion' => 'Lección 9',
+                'leccion' => 'Leccin 9',
                 'hora_inicio' => '01:25',
                 'hora_inicio_periodo' => 'PM',
                 'hora_final' => '02:05',
@@ -116,7 +116,7 @@ class LeccioneSeeder extends Seeder
             //lecciones tecnicas
             [
                 'tipoLeccion' => 'Tecnica',
-                'leccion' => 'Lección Técnica 1',
+                'leccion' => 'Lección Tcnica 1',
                 'hora_inicio' => '07:00',
                 'hora_inicio_periodo' => 'AM',
                 'hora_final' => '08:00',

@@ -45,7 +45,7 @@
 
             <a href="{{ route('bitacora.index') }}" class="sidebar-item">
                 <div class="icon-circle"><i class="bi bi-calendar-week-fill"></i></div>
-                <div class="label" data-bs-toggle="tooltip" title="Bitácora">Bitácora</div>
+                <div class="label" data-bs-toggle="tooltip" title="Bitácora">Crear reportes</div>
             </a>
 
             <a href="{{ route('profesor-llave.index') }}" class="sidebar-item" title="Ir a Gestión de Llaves">
